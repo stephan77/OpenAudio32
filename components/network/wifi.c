@@ -243,6 +243,15 @@ esp_err_t wifi_init_sta(
         TAG,
         "WLAN konnte nicht gestartet werden"
     );
+    ESP_RETURN_ON_ERROR(
+
+    esp_wifi_set_ps(WIFI_PS_NONE),
+
+    TAG,
+
+    "WLAN-Powersave konnte nicht deaktiviert werden"
+
+);
 
     wifi_initialized = true;
 

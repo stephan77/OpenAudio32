@@ -5,7 +5,9 @@
 #include <stdint.h>
 
 #include "esp_err.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #define AUDIO_SAMPLE_RATE_HZ 44100
 #define AUDIO_CHANNEL_COUNT  2
 
@@ -34,6 +36,7 @@ esp_err_t audio_submit(
  * Leert noch gepufferte Audiodaten.
  */
 esp_err_t audio_flush(uint32_t timeout_ms);
+void audio_set_playback_active(bool active);
 
 void audio_set_volume(float volume);
 float audio_get_volume(void);
@@ -42,3 +45,12 @@ void audio_set_mute(bool mute);
 bool audio_is_muted(void);
 
 esp_err_t audio_write_silence(uint32_t duration_ms);
+uint32_t audio_get_underrun_count(void);
+
+bool audio_is_playback_active(void);
+esp_err_t audio_set_sample_rate(uint32_t sample_rate);
+
+uint32_t audio_get_sample_rate(void);
+#ifdef __cplusplus
+}
+#endif

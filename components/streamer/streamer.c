@@ -4,17 +4,45 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-
+#include <strings.h>
 #include "audio.h"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
+#include "mp3_decoder.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_crt_bundle.h"
 
 #define HTTP_BUFFER_SIZE 4096
 #define WAV_HEADER_BUFFER_SIZE 512
 
+#define RADIO_RECONNECT_DELAY_MS 3000
+#define RADIO_HTTP_TIMEOUT_MS    1000
+#define RADIO_MAX_REDIRECTS 5
+#define RADIO_URL_BUFFER_SIZE 512
+
+typedef struct {
+    char location[RADIO_URL_BUFFER_SIZE];
+} radio_http_context_t;
 static const char *TAG = "streamer";
+static volatile bool radio_stop_requested = false;
+
+void streamer_radio_request_stop(void)
+{
+    radio_stop_requested = true;
+}
+
+void streamer_radio_clear_stop(void)
+{
+    radio_stop_requested = false;
+}
+
+bool streamer_radio_stop_requested(void)
+{
+    return radio_stop_requested;
+}
 
 typedef enum {
     WAV_STATE_RIFF_HEADER,
@@ -48,7 +76,40 @@ typedef struct {
 
     uint64_t total_pcm_bytes;
 } wav_stream_parser_t;
+static esp_err_t radio_http_event_handler(
+    esp_http_client_event_t *event
+)
+{
+    if (event == NULL ||
+        event->user_data == NULL) {
 
+        return ESP_OK;
+    }
+
+    radio_http_context_t *context =
+        (radio_http_context_t *)event->user_data;
+
+    if (event->event_id == HTTP_EVENT_ON_HEADER &&
+        event->header_key != NULL &&
+        event->header_value != NULL &&
+        strcasecmp(event->header_key, "Location") == 0) {
+
+        snprintf(
+            context->location,
+            sizeof(context->location),
+            "%s",
+            event->header_value
+        );
+
+        ESP_LOGI(
+            TAG,
+            "Redirect-Ziel: %s",
+            context->location
+        );
+    }
+
+    return ESP_OK;
+}
 static uint16_t read_u16_le(const uint8_t *data)
 {
     return (uint16_t)data[0]
@@ -577,4 +638,491 @@ esp_err_t streamer_play_wav_stream(const char *url)
     }
 
     return result;
+}
+esp_err_t streamer_play_mp3_stream(const char *url)
+{
+    if (url == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    ESP_LOGI(TAG, "Oeffne MP3-Stream: %s", url);
+
+    esp_http_client_config_t config = {
+        .url = url,
+        .timeout_ms = 15000,
+        .buffer_size = HTTP_BUFFER_SIZE,
+        .buffer_size_tx = 1024,
+        .disable_auto_redirect = false,
+    };
+
+    esp_http_client_handle_t client =
+        esp_http_client_init(&config);
+
+    if (client == NULL) {
+        return ESP_FAIL;
+    }
+
+    esp_err_t result = esp_http_client_open(client, 0);
+
+    if (result != ESP_OK) {
+        ESP_LOGE(
+            TAG,
+            "HTTP-Verbindung fehlgeschlagen: %s",
+            esp_err_to_name(result)
+        );
+
+        esp_http_client_cleanup(client);
+        return result;
+    }
+
+    const int64_t content_length =
+        esp_http_client_fetch_headers(client);
+
+    const int status_code =
+        esp_http_client_get_status_code(client);
+
+    ESP_LOGI(TAG, "HTTP-Status: %d", status_code);
+    ESP_LOGI(TAG, "Content-Length: %lld", content_length);
+
+    if (status_code != 200) {
+        esp_http_client_close(client);
+        esp_http_client_cleanup(client);
+        return ESP_FAIL;
+    }
+
+    uint8_t *http_buffer = heap_caps_malloc(
+        HTTP_BUFFER_SIZE,
+        MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
+    );
+
+    if (http_buffer == NULL) {
+        ESP_LOGE(TAG, "HTTP-Puffer konnte nicht angelegt werden");
+
+        esp_http_client_close(client);
+        esp_http_client_cleanup(client);
+        return ESP_ERR_NO_MEM;
+    }
+
+    result = mp3_decoder_init();
+
+    if (result != ESP_OK) {
+        free(http_buffer);
+        esp_http_client_close(client);
+        esp_http_client_cleanup(client);
+        return result;
+    }
+audio_set_playback_active(true);
+    size_t total_received = 0;
+
+    while (true) {
+        const int bytes_read = esp_http_client_read(
+            client,
+            (char *)http_buffer,
+            HTTP_BUFFER_SIZE
+        );
+
+        if (bytes_read < 0) {
+            ESP_LOGE(TAG, "HTTP-Lesefehler");
+            result = ESP_FAIL;
+            break;
+        }
+
+        if (bytes_read == 0) {
+            ESP_LOGI(TAG, "MP3-HTTP-Stream beendet");
+            break;
+        }
+
+        total_received += (size_t)bytes_read;
+
+        result = mp3_decoder_feed(
+            http_buffer,
+            (size_t)bytes_read
+        );
+
+        if (result != ESP_OK) {
+            ESP_LOGE(
+                TAG,
+                "MP3-Decodierung fehlgeschlagen: %s",
+                esp_err_to_name(result)
+            );
+            break;
+        }
+    }
+
+    if (result == ESP_OK) {
+        result = mp3_decoder_finish();
+    }
+
+    mp3_decoder_deinit();
+audio_set_playback_active(false);
+    free(http_buffer);
+
+    esp_http_client_close(client);
+    esp_http_client_cleanup(client);
+
+    ESP_LOGI(
+        TAG,
+        "MP3-Empfang beendet: %u Bytes",
+        (unsigned int)total_received
+    );
+
+    if (result == ESP_OK) {
+        ESP_LOGI(TAG, "MP3-Streaming erfolgreich abgeschlossen");
+    }
+
+    return result;
+}
+esp_err_t streamer_play_mp3_radio(const char *url)
+{
+    if (url == NULL || url[0] == '\0') {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    uint8_t *http_buffer =
+        heap_caps_malloc(
+            HTTP_BUFFER_SIZE,
+            MALLOC_CAP_SPIRAM |
+            MALLOC_CAP_8BIT
+        );
+
+    if (http_buffer == NULL) {
+        ESP_LOGE(
+            TAG,
+            "Radio-HTTP-Puffer konnte nicht angelegt werden"
+        );
+
+        return ESP_ERR_NO_MEM;
+    }
+
+    char current_url[RADIO_URL_BUFFER_SIZE];
+
+    const int url_length = snprintf(
+        current_url,
+        sizeof(current_url),
+        "%s",
+        url
+    );
+
+    if (url_length <= 0 ||
+        (size_t)url_length >= sizeof(current_url)) {
+
+        free(http_buffer);
+        return ESP_ERR_INVALID_SIZE;
+    }
+
+    esp_err_t final_result = ESP_OK;
+
+    while (!streamer_radio_stop_requested()) {
+        bool stream_started = false;
+
+        for (int redirect_count = 0;
+             redirect_count <= RADIO_MAX_REDIRECTS;
+             redirect_count++) {
+
+            if (streamer_radio_stop_requested()) {
+                final_result = ESP_ERR_INVALID_STATE;
+                break;
+            }
+
+            radio_http_context_t http_context = {0};
+
+            ESP_LOGI(
+                TAG,
+                "Verbinde mit Webradio: %s",
+                current_url
+            );
+
+            esp_http_client_config_t config = {
+                .url = current_url,
+                .timeout_ms = RADIO_HTTP_TIMEOUT_MS,
+                .buffer_size = HTTP_BUFFER_SIZE,
+                .buffer_size_tx = 1024,
+                .disable_auto_redirect = true,
+                .user_agent = "OpenAudio32/1.0",
+                .keep_alive_enable = true,
+                .crt_bundle_attach = esp_crt_bundle_attach,
+                .event_handler = radio_http_event_handler,
+                .user_data = &http_context,
+            };
+
+            esp_http_client_handle_t client =
+                esp_http_client_init(&config);
+
+            if (client == NULL) {
+                final_result = ESP_ERR_NO_MEM;
+                break;
+            }
+
+            esp_http_client_set_header(
+                client,
+                "Icy-MetaData",
+                "0"
+            );
+
+            esp_err_t result =
+                esp_http_client_open(
+                    client,
+                    0
+                );
+
+            if (result != ESP_OK) {
+                ESP_LOGE(
+                    TAG,
+                    "Radio-Verbindung fehlgeschlagen: %s",
+                    esp_err_to_name(result)
+                );
+
+                esp_http_client_cleanup(client);
+                final_result = result;
+                break;
+            }
+
+            const int64_t content_length =
+                esp_http_client_fetch_headers(client);
+
+            const int status_code =
+                esp_http_client_get_status_code(client);
+
+            ESP_LOGI(
+                TAG,
+                "Radio HTTP-Status: %d",
+                status_code
+            );
+
+            ESP_LOGI(
+                TAG,
+                "Radio Content-Length: %lld",
+                content_length
+            );
+
+            /*
+             * HTTP-Weiterleitung manuell behandeln.
+             */
+            if (status_code == 301 ||
+                status_code == 302 ||
+                status_code == 303 ||
+                status_code == 307 ||
+                status_code == 308) {
+
+                if (http_context.location[0] == '\0') {
+                    ESP_LOGE(
+                        TAG,
+                        "Redirect ohne Location-Header"
+                    );
+
+                    esp_http_client_close(client);
+                    esp_http_client_cleanup(client);
+
+                    final_result =
+                        ESP_ERR_INVALID_RESPONSE;
+
+                    break;
+                }
+
+                const int redirect_length =
+                    snprintf(
+                        current_url,
+                        sizeof(current_url),
+                        "%s",
+                        http_context.location
+                    );
+
+                esp_http_client_close(client);
+                esp_http_client_cleanup(client);
+
+                if (redirect_length <= 0 ||
+                    (size_t)redirect_length >=
+                        sizeof(current_url)) {
+
+                    ESP_LOGE(
+                        TAG,
+                        "Redirect-URL ist zu lang"
+                    );
+
+                    final_result =
+                        ESP_ERR_INVALID_SIZE;
+
+                    break;
+                }
+
+                ESP_LOGI(
+                    TAG,
+                    "Folge Redirect %d von %d",
+                    redirect_count + 1,
+                    RADIO_MAX_REDIRECTS
+                );
+
+                continue;
+            }
+
+            if (status_code != 200) {
+                ESP_LOGE(
+                    TAG,
+                    "Radio liefert unerwarteten HTTP-Status: %d",
+                    status_code
+                );
+
+                esp_http_client_close(client);
+                esp_http_client_cleanup(client);
+
+                final_result =
+                    ESP_ERR_INVALID_RESPONSE;
+
+                break;
+            }
+
+            result = mp3_decoder_init();
+
+            if (result != ESP_OK) {
+                ESP_LOGE(
+                    TAG,
+                    "MP3-Decoder konnte nicht gestartet werden: %s",
+                    esp_err_to_name(result)
+                );
+
+                esp_http_client_close(client);
+                esp_http_client_cleanup(client);
+
+                final_result = result;
+                break;
+            }
+
+            /*
+             * Erst jetzt gilt die Wiedergabe als aktiv.
+             * Vorher dürfen keine Unterläufe gezählt werden.
+             */
+            audio_set_playback_active(true);
+
+            ESP_LOGI(
+                TAG,
+                "Webradio-Stream gestartet"
+            );
+
+            size_t total_received = 0;
+            stream_started = true;
+
+            while (!streamer_radio_stop_requested()) {
+                const int bytes_read =
+                    esp_http_client_read(
+                        client,
+                        (char *)http_buffer,
+                        HTTP_BUFFER_SIZE
+                    );
+
+                if (streamer_radio_stop_requested()) {
+                    result = ESP_ERR_INVALID_STATE;
+                    break;
+                }
+
+                if (bytes_read > 0) {
+                    total_received +=
+                        (size_t)bytes_read;
+
+                    result = mp3_decoder_feed(
+                        http_buffer,
+                        (size_t)bytes_read
+                    );
+
+                    if (result != ESP_OK) {
+                        ESP_LOGE(
+                            TAG,
+                            "Radio-MP3-Decodierung fehlgeschlagen: %s",
+                            esp_err_to_name(result)
+                        );
+
+                        break;
+                    }
+
+                    continue;
+                }
+
+                if (bytes_read == 0) {
+                    ESP_LOGW(
+                        TAG,
+                        "Radioverbindung wurde beendet"
+                    );
+
+                    result = ESP_ERR_TIMEOUT;
+                    break;
+                }
+
+                ESP_LOGW(
+                    TAG,
+                    "Radio-HTTP-Lesefehler"
+                );
+
+                result = ESP_FAIL;
+                break;
+            }
+
+            audio_set_playback_active(false);
+            mp3_decoder_deinit();
+
+            esp_http_client_close(client);
+            esp_http_client_cleanup(client);
+
+            ESP_LOGI(
+                TAG,
+                "Radioverbindung geschlossen, empfangen: %u Bytes",
+                (unsigned int)total_received
+            );
+
+            if (streamer_radio_stop_requested()) {
+                final_result = ESP_ERR_INVALID_STATE;
+            } else {
+                final_result = result;
+            }
+
+            break;
+        }
+
+        if (streamer_radio_stop_requested()) {
+            final_result = ESP_ERR_INVALID_STATE;
+            break;
+        }
+
+        if (!stream_started) {
+            audio_set_playback_active(false);
+        }
+
+        ESP_LOGI(
+            TAG,
+            "Neuer Verbindungsversuch in %d ms",
+            RADIO_RECONNECT_DELAY_MS
+        );
+
+        for (int elapsed_ms = 0;
+             elapsed_ms < RADIO_RECONNECT_DELAY_MS;
+             elapsed_ms += 100) {
+
+            if (streamer_radio_stop_requested()) {
+                break;
+            }
+
+            vTaskDelay(
+                pdMS_TO_TICKS(100)
+            );
+        }
+
+        /*
+         * Beim nächsten kompletten Versuch wieder mit der
+         * ursprünglichen Senderadresse beginnen.
+         */
+        snprintf(
+            current_url,
+            sizeof(current_url),
+            "%s",
+            url
+        );
+    }
+
+    audio_set_playback_active(false);
+    free(http_buffer);
+
+    ESP_LOGI(
+        TAG,
+        "Webradio-Streaming beendet"
+    );
+
+    return final_result;
 }

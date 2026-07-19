@@ -9,6 +9,9 @@ idf_component_register(
         audio
         network
         streamer
-        esp_psram
+        web
+        stations
+        settings
         nvs_flash
+        spotify
 )

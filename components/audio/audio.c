@@ -9,6 +9,7 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 
 #define AUDIO_BLOCK_FRAMES       256
@@ -19,7 +20,7 @@
  * Rund 186 ms Puffer:
  * 8 Blöcke × 256 Frames ÷ 44100 Hz.
  */
-#define AUDIO_RING_BUFFER_BYTES  (AUDIO_BLOCK_BYTES * 8)
+#define AUDIO_RING_BUFFER_BYTES  (128 * 1024)
 
 #define AUDIO_TASK_STACK_SIZE    4096
 #define AUDIO_TASK_PRIORITY      6
@@ -30,16 +31,21 @@
 #define I2S_WS_GPIO              GPIO_NUM_5
 #define I2S_DATA_GPIO            GPIO_NUM_6
 
+
+static bool playback_active = false;
+static uint32_t underrun_count = 0;
 static const char *TAG = "audio";
 
 static i2s_chan_handle_t tx_channel = NULL;
 static RingbufHandle_t audio_ring_buffer = NULL;
 static TaskHandle_t audio_task_handle = NULL;
+static SemaphoreHandle_t i2s_mutex = NULL;
 
 static float target_volume = 0.10f;
 static float active_gain = 0.0f;
 static bool current_mute = false;
-
+static uint32_t current_sample_rate =
+    AUDIO_SAMPLE_RATE_HZ;
 static float clamp_volume(float volume)
 {
     if (volume < 0.0f) {
@@ -56,7 +62,7 @@ static float clamp_volume(float volume)
 static float calculate_gain_step(void)
 {
     const float frames_per_fade =
-        ((float)AUDIO_SAMPLE_RATE_HZ * AUDIO_FADE_TIME_MS) / 1000.0f;
+        ((float)current_sample_rate * AUDIO_FADE_TIME_MS)/ 1000.0f;
 
     return frames_per_fade > 1.0f
         ? 1.0f / frames_per_fade
@@ -133,18 +139,26 @@ static void audio_output_task(void *argument)
         uint8_t *received = xRingbufferReceiveUpTo(
             audio_ring_buffer,
             &received_size,
-            pdMS_TO_TICKS(20),
+            0,
             AUDIO_BLOCK_BYTES
         );
 
-        if (received == NULL) {
-            /*
-             * Ohne neue Daten läuft I2S mit digitaler Stille weiter.
-             * So bleibt kein alter DMA-Inhalt hörbar hängen.
-             */
-            write_processed_block(silence, AUDIO_BLOCK_FRAMES);
-            continue;
+if (received == NULL) {
+    if (playback_active) {
+        underrun_count++;
+
+        if (underrun_count <= 10 || (underrun_count % 100) == 0) {
+            ESP_LOGW(
+                TAG,
+                "Audiopuffer-Unterlauf, Anzahl: %u",
+                (unsigned int)underrun_count
+            );
         }
+    }
+
+    write_processed_block(silence, AUDIO_BLOCK_FRAMES);
+    continue;
+}
 
         const size_t bytes_per_frame =
             AUDIO_CHANNEL_COUNT * sizeof(int16_t);
@@ -163,13 +177,29 @@ static void audio_output_task(void *argument)
     }
 }
 
+
 esp_err_t audio_init(void)
 {
     if (tx_channel != NULL) {
         return ESP_OK;
     }
 
-    ESP_LOGI(TAG, "Initialisiere I2S fuer PCM5102A");
+    ESP_LOGI(
+        TAG,
+        "Initialisiere I2S fuer PCM5102A"
+    );
+
+    i2s_mutex =
+        xSemaphoreCreateMutex();
+
+    if (i2s_mutex == NULL) {
+        ESP_LOGE(
+            TAG,
+            "I2S-Mutex konnte nicht erstellt werden"
+        );
+
+        return ESP_ERR_NO_MEM;
+    }
 
     i2s_chan_config_t channel_config =
         I2S_CHANNEL_DEFAULT_CONFIG(
@@ -177,15 +207,25 @@ esp_err_t audio_init(void)
             I2S_ROLE_MASTER
         );
 
-    ESP_RETURN_ON_ERROR(
+    esp_err_t result =
         i2s_new_channel(
             &channel_config,
             &tx_channel,
             NULL
-        ),
-        TAG,
-        "I2S-Kanal konnte nicht erstellt werden"
-    );
+        );
+
+    if (result != ESP_OK) {
+        vSemaphoreDelete(i2s_mutex);
+        i2s_mutex = NULL;
+
+        ESP_LOGE(
+            TAG,
+            "I2S-Kanal konnte nicht erstellt werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
 
     i2s_std_config_t standard_config = {
         .clk_cfg =
@@ -214,28 +254,47 @@ esp_err_t audio_init(void)
         },
     };
 
-    ESP_RETURN_ON_ERROR(
+    result =
         i2s_channel_init_std_mode(
             tx_channel,
             &standard_config
-        ),
-        TAG,
-        "I2S konnte nicht konfiguriert werden"
-    );
+        );
 
-    ESP_RETURN_ON_ERROR(
-        i2s_channel_enable(tx_channel),
-        TAG,
-        "I2S konnte nicht aktiviert werden"
-    );
+    if (result != ESP_OK) {
+        ESP_LOGE(
+            TAG,
+            "I2S konnte nicht konfiguriert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
+
+    result =
+        i2s_channel_enable(
+            tx_channel
+        );
+
+    if (result != ESP_OK) {
+        ESP_LOGE(
+            TAG,
+            "I2S konnte nicht aktiviert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
+
+    current_sample_rate =
+        AUDIO_SAMPLE_RATE_HZ;
 
     ESP_LOGI(
         TAG,
-        "I2S aktiv: BCK=%d, LCK=%d, DATA=%d, %d Hz",
+        "I2S aktiv: BCK=%d, LCK=%d, DATA=%d, %u Hz",
         I2S_BCK_GPIO,
         I2S_WS_GPIO,
         I2S_DATA_GPIO,
-        AUDIO_SAMPLE_RATE_HZ
+        (unsigned int)current_sample_rate
     );
 
     return ESP_OK;
@@ -261,14 +320,23 @@ esp_err_t audio_start(void)
         return ESP_ERR_NO_MEM;
     }
 
-    BaseType_t result = xTaskCreate(
-        audio_output_task,
-        "audio_output",
-        AUDIO_TASK_STACK_SIZE,
-        NULL,
-        AUDIO_TASK_PRIORITY,
-        &audio_task_handle
-    );
+BaseType_t result = xTaskCreatePinnedToCore(
+
+    audio_output_task,
+
+    "audio_output",
+
+    AUDIO_TASK_STACK_SIZE,
+
+    NULL,
+
+    AUDIO_TASK_PRIORITY,
+
+    &audio_task_handle,
+
+    0
+
+);
 
     if (result != pdPASS) {
         vRingbufferDelete(audio_ring_buffer);
@@ -353,6 +421,21 @@ esp_err_t audio_flush(uint32_t timeout_ms)
     return ESP_OK;
 }
 
+void audio_set_playback_active(bool active)
+{
+    playback_active = active;
+
+    if (active) {
+        underrun_count = 0;
+    }
+
+    ESP_LOGI(
+        TAG,
+        "Wiedergabe: %s",
+        active ? "AKTIV" : "INAKTIV"
+    );
+}
+
 void audio_set_volume(float volume)
 {
     target_volume = clamp_volume(volume);
@@ -384,13 +467,149 @@ bool audio_is_muted(void)
 {
     return current_mute;
 }
+uint32_t audio_get_sample_rate(void)
+{
+    return current_sample_rate;
+}
 
+esp_err_t audio_set_sample_rate(
+    uint32_t sample_rate
+)
+{
+    if (tx_channel == NULL ||
+        i2s_mutex == NULL) {
+
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    if (sample_rate != 44100U &&
+        sample_rate != 48000U) {
+
+        ESP_LOGE(
+            TAG,
+            "Nicht unterstuetzte Sample-Rate: %u Hz",
+            (unsigned int)sample_rate
+        );
+
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+
+    if (sample_rate == current_sample_rate) {
+        return ESP_OK;
+    }
+
+    if (xSemaphoreTake(
+            i2s_mutex,
+            pdMS_TO_TICKS(2000)
+        ) != pdTRUE) {
+
+        ESP_LOGE(
+            TAG,
+            "I2S-Mutex konnte nicht uebernommen werden"
+        );
+
+        return ESP_ERR_TIMEOUT;
+    }
+
+    ESP_LOGI(
+        TAG,
+        "Stelle I2S von %u Hz auf %u Hz um",
+        (unsigned int)current_sample_rate,
+        (unsigned int)sample_rate
+    );
+
+    esp_err_t result =
+        i2s_channel_disable(
+            tx_channel
+        );
+
+    if (result != ESP_OK) {
+        xSemaphoreGive(i2s_mutex);
+
+        ESP_LOGE(
+            TAG,
+            "I2S konnte nicht deaktiviert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
+
+    i2s_std_clk_config_t clock_config =
+        I2S_STD_CLK_DEFAULT_CONFIG(
+            sample_rate
+        );
+
+    result =
+        i2s_channel_reconfig_std_clock(
+            tx_channel,
+            &clock_config
+        );
+
+    if (result != ESP_OK) {
+        ESP_LOGE(
+            TAG,
+            "I2S-Takt konnte nicht geaendert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        /*
+         * Alten Zustand wieder starten.
+         */
+        const esp_err_t enable_result =
+            i2s_channel_enable(
+                tx_channel
+            );
+
+        if (enable_result != ESP_OK) {
+            ESP_LOGE(
+                TAG,
+                "I2S konnte nach Fehler nicht wieder aktiviert werden: %s",
+                esp_err_to_name(enable_result)
+            );
+        }
+
+        xSemaphoreGive(i2s_mutex);
+
+        return result;
+    }
+
+    result =
+        i2s_channel_enable(
+            tx_channel
+        );
+
+    if (result != ESP_OK) {
+        xSemaphoreGive(i2s_mutex);
+
+        ESP_LOGE(
+            TAG,
+            "I2S konnte nicht wieder aktiviert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
+
+    current_sample_rate =
+        sample_rate;
+
+    xSemaphoreGive(i2s_mutex);
+
+    ESP_LOGI(
+        TAG,
+        "I2S-Sample-Rate jetzt %u Hz",
+        (unsigned int)current_sample_rate
+    );
+
+    return ESP_OK;
+}
 esp_err_t audio_write_silence(uint32_t duration_ms)
 {
     int16_t silence[AUDIO_BLOCK_SAMPLES] = {0};
 
     uint32_t frames_remaining =
-        ((uint64_t)AUDIO_SAMPLE_RATE_HZ * duration_ms) /
+        ((uint64_t)current_sample_rate * duration_ms) /
         1000U;
 
     while (frames_remaining > 0) {
@@ -413,4 +632,13 @@ esp_err_t audio_write_silence(uint32_t duration_ms)
     }
 
     return ESP_OK;
+}
+uint32_t audio_get_underrun_count(void)
+{
+    return underrun_count;
+}
+
+bool audio_is_playback_active(void)
+{
+    return playback_active;
 }
