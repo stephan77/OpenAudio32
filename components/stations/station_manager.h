@@ -89,7 +89,13 @@ esp_err_t station_manager_set_current(uint32_t id);
  * Liefert die ID des aktuell ausgewählten Senders.
  */
 uint32_t station_manager_get_current_id(void);
+esp_err_t station_manager_update(
+    const radio_station_t *station
+);
 
+esp_err_t station_manager_delete(
+    uint32_t station_id
+);
 /**
  * Speichert Senderliste und Auswahl sofort im NVS.
  */

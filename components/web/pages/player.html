@@ -1,3 +1,172 @@
-"use strict";
+<section
+                id="playerPage"
+                class="page active"
+                data-page-section="player"
+            >
+                <div class="hero-card">
+                    <div class="station-art">
+                        <span id="stationInitials">
+                            RS
+                        </span>
+                    </div>
 
-/* OpenAudio32 Player-Modul */
+                    <div class="now-playing">
+                        <span class="live-badge">
+                            LIVE
+                        </span>
+
+                        <h3 id="stationName">
+                            Radio Salü
+                        </h3>
+
+                        <p id="trackTitle">
+                            Titelinformationen werden geladen
+                        </p>
+
+                        <div class="stream-details">
+                            <span id="codecValue">
+                                MP3
+                            </span>
+
+                            <span id="bitrateValue">
+                                128 kbit/s
+                            </span>
+
+                            <span id="sampleRateValue">
+                                44,1 kHz
+                            </span>
+
+                            <span id="channelValue">
+                                Stereo
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-controls-card">
+                    <div class="transport-controls">
+                        <button
+                            id="previousStationButton"
+                            class="round-button secondary"
+                            type="button"
+                            title="Vorheriger Sender"
+                            disabled
+                        >
+                            ◀
+                        </button>
+
+                        <button
+                            id="playButton"
+                            class="round-button primary"
+                            type="button"
+                            title="Wiedergabe stoppen"
+                            disabled
+                        >
+                            ■
+                        </button>
+
+                        <button
+                            id="nextStationButton"
+                            class="round-button secondary"
+                            type="button"
+                            title="Nächster Sender"
+                            disabled
+                        >
+                            ▶
+                        </button>
+                    </div>
+
+                    <div class="volume-section">
+                        <div class="volume-header">
+                            <span>
+                                Lautstärke
+                            </span>
+
+                            <strong id="volumeValue">
+                                10 %
+                            </strong>
+                        </div>
+
+                        <div class="volume-control">
+                            <button
+                                id="muteButton"
+                                class="icon-button"
+                                type="button"
+                                title="Stummschalten"
+                            >
+                                🔊
+                            </button>
+
+                            <input
+                                id="volumeSlider"
+                                type="range"
+                                min="0"
+                                max="100"
+                                value="10"
+                                aria-label="Lautstärke"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <article class="info-card">
+                        <span class="card-label">
+                            Streamstatus
+                        </span>
+
+                        <strong
+                            id="streamStatus"
+                            class="status-positive"
+                        >
+                            Verbunden
+                        </strong>
+
+                        <small id="underrunStatus">
+                            Keine Unterläufe
+                        </small>
+                    </article>
+
+                    <article class="info-card">
+                        <span class="card-label">
+                            Audiopuffer
+                        </span>
+
+                        <strong id="bufferSizeValue">
+                            128 KiB
+                        </strong>
+
+                        <small id="bufferStatusValue">
+                            Stabil
+                        </small>
+                    </article>
+
+                    <article class="info-card">
+                        <span class="card-label">
+                            WLAN-Signal
+                        </span>
+
+                        <strong id="wifiRssi">
+                            – dBm
+                        </strong>
+
+                        <small id="wifiQuality">
+                            Wird ermittelt
+                        </small>
+                    </article>
+
+                    <article class="info-card">
+                        <span class="card-label">
+                            Laufzeit
+                        </span>
+
+                        <strong id="uptimeValue">
+                            00:00:00
+                        </strong>
+
+                        <small>
+                            Seit Neustart
+                        </small>
+                    </article>
+                </div>
+            </section>

@@ -1,0 +1,108 @@
+<div
+        id="stationModal"
+        class="modal-backdrop hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="stationModalTitle"
+    >
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">
+                        Senderverwaltung
+                    </span>
+
+                    <h3 id="stationModalTitle">
+                        Neuen Sender hinzufügen
+                    </h3>
+                </div>
+
+                <button
+                    id="closeStationModalButton"
+                    class="modal-close-button"
+                    type="button"
+                    aria-label="Dialog schließen"
+                >
+                    ×
+                </button>
+            </div>
+
+            <form id="stationForm">
+                <div class="form-field">
+                    <label for="stationNameInput">
+                        Sendername
+                    </label>
+
+                    <input
+                        id="stationNameInput"
+                        name="name"
+                        type="text"
+                        maxlength="47"
+                        autocomplete="off"
+                        placeholder="z. B. Radio Salü"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="stationUrlInput">
+                        Stream-URL
+                    </label>
+
+                    <input
+                        id="stationUrlInput"
+                        name="url"
+                        type="url"
+                        maxlength="255"
+                        autocomplete="off"
+                        placeholder="http://server:port/stream"
+                        required
+                    >
+
+                    <small>
+                        Direkte HTTP- oder HTTPS-Adresse des
+                        Audiostreams.
+                    </small>
+                </div>
+
+                <label class="checkbox-field">
+                    <input
+                        id="stationFavoriteInput"
+                        name="favorite"
+                        type="checkbox"
+                    >
+
+                    <span class="checkbox-indicator">
+                        ✓
+                    </span>
+
+                    <span>
+                        Als Favorit speichern
+                    </span>
+                </label>
+
+                <div
+                    id="stationFormError"
+                    class="form-error hidden"
+                ></div>
+
+                <div class="modal-actions">
+                    <button
+                        id="cancelStationButton"
+                        class="secondary-action-button"
+                        type="button"
+                    >
+                        Abbrechen
+                    </button>
+
+                    <button
+                        id="saveStationButton"
+                        class="primary-action-button"
+                        type="submit"
+                    >
+                        Sender speichern
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>

@@ -1,160 +1,343 @@
 "use strict";
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-        const navigationItems =
-            document.querySelectorAll(".nav-item");
+const pageConfiguration = {
+    player: {
+        url: "/pages/player.html",
+        title: "Player",
+        eyebrow: "Jetzt läuft",
+        initializer: "initializePlayerPage"
+    },
 
-        const pageSections =
-            document.querySelectorAll(
-                "[data-page-section]"
+    stations: {
+        url: "/pages/stations.html",
+        title: "Radiosender",
+        eyebrow: "Senderverwaltung",
+        initializer: "initializeStationsPage"
+    },
+
+    audio: {
+        url: "/pages/audio.html",
+        title: "Audio",
+        eyebrow: "Klangregelung",
+        initializer: "initializeAudioPage"
+    },
+
+    wifi: {
+        url: "/pages/wifi.html",
+        title: "WLAN",
+        eyebrow: "Netzwerk",
+        initializer: "initializeWifiPage"
+    },
+
+    spotify: {
+        url: "/pages/spotify.html",
+        title: "Spotify",
+        eyebrow: "Streaming-Dienste",
+        initializer: "initializeSpotifyPage"
+    },
+
+    system: {
+        url: "/pages/system.html",
+        title: "System",
+        eyebrow: "Geräteverwaltung",
+        initializer: "initializeSystemPage"
+    }
+};
+
+let currentPage = null;
+let pageLoadController = null;
+
+async function fetchHtml(url, signal = undefined) {
+    const response = await fetch(url, {
+        cache: "no-store",
+        signal
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            `HTTP ${response.status} beim Laden von ${url}`
+        );
+    }
+
+    return response.text();
+}
+
+async function loadModalContent() {
+    const modalContainer =
+        document.getElementById("modalContainer");
+
+    if (!modalContainer) {
+        return;
+    }
+
+    try {
+        modalContainer.innerHTML =
+            await fetchHtml(
+                "/pages/station-modal.html"
+            );
+    } catch (error) {
+        console.error(
+            "Senderdialog konnte nicht geladen werden:",
+            error
+        );
+    }
+}
+
+async function loadPage(pageName) {
+    if (
+        currentPage === "player" &&
+        window.OpenAudioPlayer &&
+        typeof window.OpenAudioPlayer.destroy === "function"
+    ) {
+        window.OpenAudioPlayer.destroy();
+    }
+
+    if (
+        currentPage === "audio" &&
+        window.OpenAudioAudio &&
+        typeof window.OpenAudioAudio.destroy === "function"
+    ) {
+        window.OpenAudioAudio.destroy();
+    }
+
+    if (
+        currentPage === "stations" &&
+        window.OpenAudioStations &&
+        typeof window.OpenAudioStations.destroy === "function"
+    ) {
+        window.OpenAudioStations.destroy();
+    }
+
+    const configuration =
+        pageConfiguration[pageName];
+
+    const pageContent =
+        document.getElementById("pageContent");
+
+    if (!configuration || !pageContent) {
+        return;
+    }
+
+    if (pageLoadController) {
+        pageLoadController.abort();
+    }
+
+    const controller =
+        new AbortController();
+
+    pageLoadController =
+        controller;
+
+    pageContent.innerHTML = `
+        <div class="page-loading">
+            Seite wird geladen …
+        </div>
+    `;
+
+    try {
+        const html =
+            await fetchHtml(
+                configuration.url,
+                controller.signal
             );
 
-        const pageTitle =
-            document.getElementById("pageTitle");
-
-        const pageEyebrow =
-            document.getElementById("pageEyebrow");
-
-        const sidebar =
-            document.querySelector(".sidebar");
-
-        const menuButton =
-            document.getElementById("menuButton");
-
-        const pageConfiguration = {
-            player: {
-                title: "Player",
-                eyebrow: "Jetzt läuft"
-            },
-
-            stations: {
-                title: "Radiosender",
-                eyebrow: "Senderverwaltung"
-            },
-
-            audio: {
-                title: "Audio & Equalizer",
-                eyebrow: "Klangregelung"
-            },
-
-            wifi: {
-                title: "WLAN",
-                eyebrow: "Netzwerk"
-            },
-
-            spotify: {
-                title: "Spotify Connect",
-                eyebrow: "Streaming-Dienste"
-            },
-
-            system: {
-                title: "System",
-                eyebrow: "Geräteverwaltung"
-            }
-        };
-
-        function openPage(pageName) {
-            const configuration =
-                pageConfiguration[pageName] ??
-                pageConfiguration.player;
-
-            navigationItems.forEach((item) => {
-                item.classList.toggle(
-                    "active",
-                    item.dataset.page === pageName
-                );
-            });
-
-            pageSections.forEach((section) => {
-                section.classList.toggle(
-                    "active",
-                    section.dataset.pageSection ===
-                        pageName
-                );
-            });
-
-            if (pageTitle) {
-                pageTitle.textContent =
-                    configuration.title;
-            }
-
-            if (pageEyebrow) {
-                pageEyebrow.textContent =
-                    configuration.eyebrow;
-            }
-
-if (
-    pageName === "stations" &&
-    window.OpenAudioStations &&
-    typeof window.OpenAudioStations.load ===
-        "function"
-) {
-    window.OpenAudioStations.load();
-}
-if (
-    pageName === "system" &&
-    window.OpenAudioSystem
-) {
-    window.OpenAudioSystem.loadSettings();
-    window.OpenAudioSystem.loadStatus();
-}
-            sidebar?.classList.remove("open");
+        /*
+         * Falls inzwischen bereits eine andere Seite angefordert wurde,
+         * darf dieses ältere Ergebnis nicht mehr eingesetzt werden.
+         */
+        if (pageLoadController !== controller) {
+            return;
         }
 
-        navigationItems.forEach((item) => {
-            item.addEventListener(
+pageContent.innerHTML =
+    html;
+
+const loadedPage =
+    pageContent.querySelector(
+        "[data-page-section]"
+    );
+
+if (loadedPage) {
+    loadedPage.classList.add(
+        "active"
+    );
+}
+
+currentPage =
+    pageName;
+
+        updateNavigation(
+            pageName
+        );
+
+        updatePageHeader(
+            configuration
+        );
+
+        const initializer =
+            window[
+                configuration.initializer
+            ];
+
+        if (typeof initializer === "function") {
+            await initializer();
+        } else {
+            console.debug(
+                `Kein Initializer für ${pageName} registriert`
+            );
+        }
+    } catch (error) {
+        if (error.name === "AbortError") {
+            return;
+        }
+
+        console.error(
+            `Seite ${pageName} konnte nicht geladen werden:`,
+            error
+        );
+
+        pageContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    !
+                </div>
+
+                <h3>
+                    Seite konnte nicht geladen werden
+                </h3>
+
+                <p>
+                    ${escapeHtml(error.message)}
+                </p>
+            </div>
+        `;
+    } finally {
+        if (pageLoadController === controller) {
+            pageLoadController = null;
+        }
+    }
+}
+
+function updateNavigation(pageName) {
+    document
+        .querySelectorAll(".nav-item")
+        .forEach((button) => {
+            button.classList.toggle(
+                "active",
+                button.dataset.page === pageName
+            );
+        });
+}
+
+function updatePageHeader(configuration) {
+    const pageTitle =
+        document.getElementById("pageTitle");
+
+    const pageEyebrow =
+        document.getElementById("pageEyebrow");
+
+    if (pageTitle) {
+        pageTitle.textContent =
+            configuration.title;
+    }
+
+    if (pageEyebrow) {
+        pageEyebrow.textContent =
+            configuration.eyebrow;
+    }
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function closeMobileNavigation() {
+    const sidebar =
+        document.querySelector(".sidebar");
+
+    if (sidebar) {
+        sidebar.classList.remove(
+            "open"
+        );
+    }
+}
+
+function registerNavigation() {
+    document
+        .querySelectorAll(".nav-item")
+        .forEach((button) => {
+            button.addEventListener(
                 "click",
-                () => {
-                    openPage(item.dataset.page);
+                async () => {
+                    const pageName =
+                        button.dataset.page;
+
+                    if (!pageName ||
+                        !pageConfiguration[pageName] ||
+                        pageName === currentPage) {
+
+                        closeMobileNavigation();
+                        return;
+                    }
+
+                    closeMobileNavigation();
+
+                    await loadPage(
+                        pageName
+                    );
                 }
             );
         });
+}
 
-        menuButton?.addEventListener(
-            "click",
-            () => {
-                sidebar?.classList.toggle("open");
-            }
-        );
+function registerMobileMenu() {
+    const menuButton =
+        document.getElementById("menuButton");
 
-        if (window.OpenAudioPlayer) {
-            window.OpenAudioPlayer.init();
-        } else {
-            console.error(
-                "OpenAudioPlayer wurde nicht geladen"
+    const sidebar =
+        document.querySelector(".sidebar");
+
+    if (!menuButton || !sidebar) {
+        return;
+    }
+
+    menuButton.addEventListener(
+        "click",
+        () => {
+            sidebar.classList.toggle(
+                "open"
             );
         }
-
-if (
-    window.OpenAudioStations &&
-    typeof window.OpenAudioStations.init ===
-        "function"
-) {
-    window.OpenAudioStations.init();
-} else {
-    console.error(
-        "OpenAudioStations wurde nicht geladen"
     );
 }
-if (
 
-    window.OpenAudioSystem &&
+function updateDeviceIp() {
+    const deviceIp =
+        document.getElementById("deviceIp");
 
-    typeof window.OpenAudioSystem.init ===
-
-        "function"
-
-) {
-
-    window.OpenAudioSystem.init();
-
-}
-        openPage("player");
-
-        console.log(
-            "OpenAudio32 Webanwendung gestartet"
-        );
+    if (!deviceIp) {
+        return;
     }
+
+    deviceIp.textContent =
+        window.location.hostname || "–";
+}
+
+async function initializeApplication() {
+    registerNavigation();
+    registerMobileMenu();
+    updateDeviceIp();
+
+    await loadModalContent();
+    await loadPage("player");
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeApplication
 );

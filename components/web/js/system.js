@@ -646,3 +646,6 @@ return {
 
 };
 })();
+window.initializeSystemPage = async function () {
+    window.OpenAudioSystem.init();
+};

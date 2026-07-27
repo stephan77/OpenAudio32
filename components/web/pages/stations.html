@@ -1,3 +1,139 @@
-"use strict";
+<section
+    id="stationsPage"
+    class="page active"
+    data-page-section="stations"
+>
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">
+                Senderverwaltung
+            </span>
 
-/* OpenAudio32 Player-Modul */
+            <h3>
+                Radiosender
+            </h3>
+
+            <p>
+                Internetradiosender verwalten, durchsuchen und direkt
+                auf OpenAudio32 wiedergeben.
+            </p>
+        </div>
+
+        <button
+            id="addStationButton"
+            class="primary-action-button"
+            type="button"
+        >
+            <span aria-hidden="true">
+                ＋
+            </span>
+
+            <span>
+                Neuer Sender
+            </span>
+        </button>
+    </div>
+
+    <div class="stations-toolbar">
+        <div class="stations-search">
+            <label
+                class="visually-hidden"
+                for="stationSearchInput"
+            >
+                Radiosender durchsuchen
+            </label>
+
+            <span
+                class="stations-search-icon"
+                aria-hidden="true"
+            >
+                ⌕
+            </span>
+
+            <input
+                id="stationSearchInput"
+                type="search"
+                placeholder="Sender suchen …"
+                autocomplete="off"
+                spellcheck="false"
+            >
+
+            <button
+                id="clearStationSearchButton"
+                class="stations-search-clear hidden"
+                type="button"
+                aria-label="Suche löschen"
+                title="Suche löschen"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="stations-toolbar-information">
+            <span id="stationCountValue">
+                0 Sender
+            </span>
+
+            <span
+                id="currentStationValue"
+                class="hidden"
+            >
+                Keine Wiedergabe
+            </span>
+        </div>
+    </div>
+
+    <div
+        id="stationsMessage"
+        class="inline-message hidden"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+    <div
+        id="stationsLoading"
+        class="stations-loading"
+    >
+        <div class="stations-loading-content">
+            <span class="stations-loading-spinner"></span>
+
+            <strong>
+                Sender werden geladen
+            </strong>
+
+            <small>
+                OpenAudio32 liest die gespeicherten Sender ein.
+            </small>
+        </div>
+    </div>
+
+    <div
+        id="stationsGrid"
+        class="stations-grid hidden"
+    ></div>
+
+    <div
+        id="stationsEmpty"
+        class="empty-state hidden"
+    >
+        <div class="empty-icon">
+            ◉
+        </div>
+
+        <h3 id="stationsEmptyTitle">
+            Keine Sender gespeichert
+        </h3>
+
+        <p id="stationsEmptyText">
+            Lege deinen ersten Internetradiosender an.
+        </p>
+
+        <button
+            id="emptyAddStationButton"
+            class="primary-action-button"
+            type="button"
+        >
+            Sender hinzufügen
+        </button>
+    </div>
+</section>

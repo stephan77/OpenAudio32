@@ -15,27 +15,34 @@
 
     <title>OpenAudio32</title>
 
+    <link
+        rel="stylesheet"
+        href="/css/app.css?v=3"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/player.css?v=3"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/stations.css?v=3"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/css/system.css?v=3"
+    >
+    <link
+    rel="stylesheet"
+    href="/css/audio.css?v=1"
+>
 <link
     rel="stylesheet"
-    href="/css/app.css?v=2"
+    href="/css/audio.css?v=1"
 >
 
-<link
-    rel="stylesheet"
-    href="/css/player.css?v=2"
->
-
-<link
-    rel="stylesheet"
-    href="/css/stations.css?v=2"
->
-<link
-
-    rel="stylesheet"
-
-    href="/css/system.css?v=1"
-
->
 </head>
 
 <body>
@@ -47,7 +54,9 @@
                 </div>
 
                 <div>
-                    <h1>OpenAudio32</h1>
+                    <h1>
+                        OpenAudio32
+                    </h1>
 
                     <span>
                         Network Audio Player
@@ -61,8 +70,13 @@
                     data-page="player"
                     type="button"
                 >
-                    <span class="nav-icon">▶</span>
-                    <span>Player</span>
+                    <span class="nav-icon">
+                        ▶
+                    </span>
+
+                    <span>
+                        Player
+                    </span>
                 </button>
 
                 <button
@@ -70,8 +84,13 @@
                     data-page="stations"
                     type="button"
                 >
-                    <span class="nav-icon">◉</span>
-                    <span>Radiosender</span>
+                    <span class="nav-icon">
+                        ◉
+                    </span>
+
+                    <span>
+                        Radiosender
+                    </span>
                 </button>
 
                 <button
@@ -79,8 +98,13 @@
                     data-page="audio"
                     type="button"
                 >
-                    <span class="nav-icon">≋</span>
-                    <span>Audio</span>
+                    <span class="nav-icon">
+                        ≋
+                    </span>
+
+                    <span>
+                        Audio
+                    </span>
                 </button>
 
                 <button
@@ -88,8 +112,13 @@
                     data-page="wifi"
                     type="button"
                 >
-                    <span class="nav-icon">⌁</span>
-                    <span>WLAN</span>
+                    <span class="nav-icon">
+                        ⌁
+                    </span>
+
+                    <span>
+                        WLAN
+                    </span>
                 </button>
 
                 <button
@@ -97,8 +126,13 @@
                     data-page="spotify"
                     type="button"
                 >
-                    <span class="nav-icon">♪</span>
-                    <span>Spotify</span>
+                    <span class="nav-icon">
+                        ♪
+                    </span>
+
+                    <span>
+                        Spotify
+                    </span>
                 </button>
 
                 <button
@@ -106,8 +140,13 @@
                     data-page="system"
                     type="button"
                 >
-                    <span class="nav-icon">⚙</span>
-                    <span>System</span>
+                    <span class="nav-icon">
+                        ⚙
+                    </span>
+
+                    <span>
+                        System
+                    </span>
                 </button>
             </nav>
 
@@ -121,7 +160,7 @@
                         </strong>
 
                         <span id="deviceIp">
-                            192.168.179.203
+                            –
                         </span>
                     </div>
                 </div>
@@ -177,1230 +216,29 @@
                 </div>
             </header>
 
-            <!-- ===================================================== -->
-            <!-- PLAYER                                                -->
-            <!-- ===================================================== -->
-
-            <section
-                id="playerPage"
-                class="page active"
-                data-page-section="player"
+            <div
+                id="pageContent"
+                class="page-content"
+                aria-live="polite"
             >
-                <div class="hero-card">
-                    <div class="station-art">
-                        <span id="stationInitials">
-                            RS
-                        </span>
-                    </div>
-
-                    <div class="now-playing">
-                        <span class="live-badge">
-                            LIVE
-                        </span>
-
-                        <h3 id="stationName">
-                            Radio Salü
-                        </h3>
-
-                        <p id="trackTitle">
-                            Titelinformationen werden geladen
-                        </p>
-
-                        <div class="stream-details">
-                            <span id="codecValue">
-                                MP3
-                            </span>
-
-                            <span id="bitrateValue">
-                                128 kbit/s
-                            </span>
-
-                            <span id="sampleRateValue">
-                                44,1 kHz
-                            </span>
-
-                            <span id="channelValue">
-                                Stereo
-                            </span>
-                        </div>
-                    </div>
+                <div class="page-loading">
+                    Seite wird geladen …
                 </div>
-
-                <div class="player-controls-card">
-                    <div class="transport-controls">
-                        <button
-                            id="previousStationButton"
-                            class="round-button secondary"
-                            type="button"
-                            title="Vorheriger Sender"
-                            disabled
-                        >
-                            ◀
-                        </button>
-
-                        <button
-                            id="playButton"
-                            class="round-button primary"
-                            type="button"
-                            title="Wiedergabe stoppen"
-                            disabled
-                        >
-                            ■
-                        </button>
-
-                        <button
-                            id="nextStationButton"
-                            class="round-button secondary"
-                            type="button"
-                            title="Nächster Sender"
-                            disabled
-                        >
-                            ▶
-                        </button>
-                    </div>
-
-                    <div class="volume-section">
-                        <div class="volume-header">
-                            <span>
-                                Lautstärke
-                            </span>
-
-                            <strong id="volumeValue">
-                                10 %
-                            </strong>
-                        </div>
-
-                        <div class="volume-control">
-                            <button
-                                id="muteButton"
-                                class="icon-button"
-                                type="button"
-                                title="Stummschalten"
-                            >
-                                🔊
-                            </button>
-
-                            <input
-                                id="volumeSlider"
-                                type="range"
-                                min="0"
-                                max="100"
-                                value="10"
-                                aria-label="Lautstärke"
-                            >
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <article class="info-card">
-                        <span class="card-label">
-                            Streamstatus
-                        </span>
-
-                        <strong
-                            id="streamStatus"
-                            class="status-positive"
-                        >
-                            Verbunden
-                        </strong>
-
-                        <small id="underrunStatus">
-                            Keine Unterläufe
-                        </small>
-                    </article>
-
-                    <article class="info-card">
-                        <span class="card-label">
-                            Audiopuffer
-                        </span>
-
-                        <strong id="bufferSizeValue">
-                            128 KiB
-                        </strong>
-
-                        <small id="bufferStatusValue">
-                            Stabil
-                        </small>
-                    </article>
-
-                    <article class="info-card">
-                        <span class="card-label">
-                            WLAN-Signal
-                        </span>
-
-                        <strong id="wifiRssi">
-                            – dBm
-                        </strong>
-
-                        <small id="wifiQuality">
-                            Wird ermittelt
-                        </small>
-                    </article>
-
-                    <article class="info-card">
-                        <span class="card-label">
-                            Laufzeit
-                        </span>
-
-                        <strong id="uptimeValue">
-                            00:00:00
-                        </strong>
-
-                        <small>
-                            Seit Neustart
-                        </small>
-                    </article>
-                </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- RADIOSENDER                                          -->
-            <!-- ===================================================== -->
-
-            <section
-                id="stationsPage"
-                class="page"
-                data-page-section="stations"
-            >
-                <div class="section-header">
-                    <div>
-                        <span class="eyebrow">
-                            Senderverwaltung
-                        </span>
-
-                        <h3>
-                            Radiosender
-                        </h3>
-
-                        <p>
-                            Sender hinzufügen, verwalten und dauerhaft
-                            im Gerät speichern.
-                        </p>
-                    </div>
-
-                    <button
-                        id="addStationButton"
-                        class="primary-action-button"
-                        type="button"
-                    >
-                        <span>＋</span>
-                        Neuer Sender
-                    </button>
-                </div>
-
-                <div
-                    id="stationsMessage"
-                    class="inline-message hidden"
-                ></div>
-
-                <div
-                    id="stationsLoading"
-                    class="stations-loading"
-                >
-                    Sender werden geladen …
-                </div>
-
-                <div
-                    id="stationsGrid"
-                    class="stations-grid"
-                ></div>
-
-                <div
-                    id="stationsEmpty"
-                    class="empty-state hidden"
-                >
-                    <div class="empty-icon">
-                        ◉
-                    </div>
-
-                    <h3>
-                        Keine Sender gespeichert
-                    </h3>
-
-                    <p>
-                        Lege deinen ersten Internetradiosender an.
-                    </p>
-
-                    <button
-                        id="emptyAddStationButton"
-                        class="primary-action-button"
-                        type="button"
-                    >
-                        Sender hinzufügen
-                    </button>
-                </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- AUDIO                                                 -->
-            <!-- ===================================================== -->
-
-            <section
-                id="audioPage"
-                class="page"
-                data-page-section="audio"
-            >
-                <div class="section-header">
-                    <div>
-                        <span class="eyebrow">
-                            Klangregelung
-                        </span>
-
-                        <h3>
-                            Audio &amp; Equalizer
-                        </h3>
-
-                        <p>
-                            Lautstärke, Klangregelung und
-                            Ausgabeeinstellungen.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        ≋
-                    </div>
-
-                    <h3>
-                        Audio-Einstellungen
-                    </h3>
-
-                    <p>
-                        Equalizer und DSP-Funktionen werden als
-                        Nächstes umgesetzt.
-                    </p>
-                </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- WLAN                                                  -->
-            <!-- ===================================================== -->
-
-            <section
-                id="wifiPage"
-                class="page"
-                data-page-section="wifi"
-            >
-                <div class="section-header">
-                    <div>
-                        <span class="eyebrow">
-                            Netzwerk
-                        </span>
-
-                        <h3>
-                            WLAN
-                        </h3>
-
-                        <p>
-                            Aktuelle Verbindung und
-                            Netzwerkeinstellungen.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        ⌁
-                    </div>
-
-                    <h3>
-                        WLAN-Verwaltung
-                    </h3>
-
-                    <p>
-                        Netzwerksuche und WLAN-Wechsel werden später
-                        ergänzt.
-                    </p>
-                </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- SPOTIFY                                               -->
-            <!-- ===================================================== -->
-
-            <section
-                id="spotifyPage"
-                class="page"
-                data-page-section="spotify"
-            >
-                <div class="section-header">
-                    <div>
-                        <span class="eyebrow">
-                            Streaming-Dienste
-                        </span>
-
-                        <h3>
-                            Spotify Connect
-                        </h3>
-
-                        <p>
-                            OpenAudio32 als Spotify-Wiedergabegerät.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        ♪
-                    </div>
-
-                    <h3>
-                        Spotify Connect
-                    </h3>
-
-                    <p>
-                        Diese Funktion ist noch nicht implementiert.
-                    </p>
-                </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- SYSTEM                                                -->
-            <!-- ===================================================== -->
-
-            <section
-    id="systemPage"
-    class="page"
-    data-page-section="system"
->
-    <div class="section-header">
-        <div>
-            <span class="eyebrow">
-                Geräteverwaltung
-            </span>
-
-            <h3>
-                System
-            </h3>
-
-            <p>
-                Audio-, Netzwerk- und Geräteeinstellungen
-                verwalten.
-            </p>
-        </div>
-
-        <button
-            id="systemRestartButton"
-            class="secondary-action-button"
-            type="button"
-        >
-            Gerät neu starten
-        </button>
-    </div>
-
-    <div class="system-tabs">
-        <button
-            class="system-tab active"
-            data-system-tab="overview"
-            type="button"
-        >
-            Übersicht
-        </button>
-
-        <button
-            class="system-tab"
-            data-system-tab="audio"
-            type="button"
-        >
-            Audio-Puffer
-        </button>
-
-        <button
-            class="system-tab"
-            data-system-tab="network"
-            type="button"
-        >
-            Netzwerk
-        </button>
-
-        <button
-            class="system-tab"
-            data-system-tab="firmware"
-            type="button"
-        >
-            Firmware
-        </button>
-
-        <button
-            class="system-tab"
-            data-system-tab="diagnostics"
-            type="button"
-        >
-            Diagnose
-        </button>
-    </div>
-
-    <div
-        id="systemMessage"
-        class="inline-message hidden"
-    ></div>
-
-    <!-- Übersicht -->
-
-    <div
-        class="system-tab-page active"
-        data-system-tab-page="overview"
-    >
-        <div class="system-card-grid">
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Firmware
-                        </span>
-
-                        <h4>
-                            OpenAudio32
-                        </h4>
-                    </div>
-
-                    <span class="system-badge positive">
-                        Online
-                    </span>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>Version</span>
-                        <strong id="systemFirmwareVersion">
-                            0.1.0
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Build</span>
-                        <strong id="systemBuildDate">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Audio
-                        </span>
-
-                        <h4>
-                            Aktuelle Ausgabe
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>Sample-Rate</span>
-                        <strong id="systemSampleRate">
-                            –
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Unterläufe</span>
-                        <strong id="systemUnderruns">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Speicher
-                        </span>
-
-                        <h4>
-                            Arbeitsspeicher
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>Interner Heap frei</span>
-                        <strong id="systemFreeHeap">
-                            –
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>PSRAM frei</span>
-                        <strong id="systemFreePsram">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Betriebszeit
-                        </span>
-
-                        <h4>
-                            Systemstatus
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>Laufzeit</span>
-                        <strong id="systemUptime">
-                            00:00:00
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>WLAN</span>
-                        <strong id="systemWifiRssi">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-        </div>
-    </div>
-
-    <!-- Audio -->
-
-    <div
-        class="system-tab-page"
-        data-system-tab-page="audio"
-    >
-        <div class="system-card-grid">
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            PCM-Ausgabe
-                        </span>
-
-                        <h4>
-                            Ringpuffer
-                        </h4>
-                    </div>
-
-                    <span class="system-badge warning">
-                        Neustart
-                    </span>
-                </div>
-
-                <div class="form-field">
-                    <label for="audioBufferSizeInput">
-                        Puffergröße
-                    </label>
-
-                    <select id="audioBufferSizeInput">
-                        <option value="32">
-                            32 KiB
-                        </option>
-
-                        <option value="64">
-                            64 KiB
-                        </option>
-
-                        <option
-                            value="128"
-                            selected
-                        >
-                            128 KiB
-                        </option>
-
-                        <option value="256">
-                            256 KiB
-                        </option>
-                    </select>
-                </div>
-
-                <p class="system-description">
-                    Ein größerer Puffer reduziert Aussetzer,
-                    erhöht aber Latenz und Speicherverbrauch.
-                </p>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            PCM-Verarbeitung
-                        </span>
-
-                        <h4>
-                            Blockgröße
-                        </h4>
-                    </div>
-
-                    <span class="system-badge warning">
-                        Neustart
-                    </span>
-                </div>
-
-                <div class="form-field">
-                    <label for="audioBlockFramesInput">
-                        Frames pro Block
-                    </label>
-
-                    <select id="audioBlockFramesInput">
-                        <option value="128">
-                            128 Frames
-                        </option>
-
-                        <option
-                            value="256"
-                            selected
-                        >
-                            256 Frames
-                        </option>
-
-                        <option value="512">
-                            512 Frames
-                        </option>
-                    </select>
-                </div>
-
-                <small id="audioBlockDuration">
-                    5,80 ms bei 44,1 kHz
-                </small>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            MP3-Decoder
-                        </span>
-
-                        <h4>
-                            Decode-Schwelle
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-range">
-                    <div class="system-range-header">
-                        <label for="mp3DecodeThresholdInput">
-                            Eingangsdaten
-                        </label>
-
-                        <strong id="mp3DecodeThresholdValue">
-                            2048 Byte
-                        </strong>
-                    </div>
-
-                    <input
-                        id="mp3DecodeThresholdInput"
-                        type="range"
-                        min="512"
-                        max="8192"
-                        step="512"
-                        value="2048"
-                    >
-                </div>
-
-                <p class="system-description">
-                    Zu große Werte führen zu schubweiser
-                    Decodierung. Der funktionierende Wert ist
-                    aktuell 2048 Byte.
-                </p>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Wiedergabestart
-                        </span>
-
-                        <h4>
-                            Vorpuffer
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-range">
-                    <div class="system-range-header">
-                        <label for="playbackPrebufferInput">
-                            Mindestpuffer
-                        </label>
-
-                        <strong id="playbackPrebufferValue">
-                            250 ms
-                        </strong>
-                    </div>
-
-                    <input
-                        id="playbackPrebufferInput"
-                        type="range"
-                        min="0"
-                        max="1500"
-                        step="50"
-                        value="250"
-                    >
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Lautstärke
-                        </span>
-
-                        <h4>
-                            Fade-Zeit
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-range">
-                    <div class="system-range-header">
-                        <label for="volumeFadeInput">
-                            Übergangszeit
-                        </label>
-
-                        <strong id="volumeFadeValue">
-                            250 ms
-                        </strong>
-                    </div>
-
-                    <input
-                        id="volumeFadeInput"
-                        type="range"
-                        min="0"
-                        max="2000"
-                        step="50"
-                        value="250"
-                    >
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Unterläufe
-                        </span>
-
-                        <h4>
-                            Diagnose
-                        </h4>
-                    </div>
-                </div>
-
-                <label class="system-switch">
-                    <span>
-                        Unterläufe protokollieren
-                    </span>
-
-                    <input
-                        id="underrunLoggingInput"
-                        type="checkbox"
-                        checked
-                    >
-
-                    <span class="system-switch-slider"></span>
-                </label>
-
-                <button
-                    id="resetUnderrunsButton"
-                    class="secondary-action-button"
-                    type="button"
-                >
-                    Zähler zurücksetzen
-                </button>
-            </article>
-        </div>
-
-        <div class="system-actions">
-            <span
-                id="systemRestartHint"
-                class="system-restart-hint hidden"
-            >
-                Einige Änderungen benötigen einen Neustart.
-            </span>
-
-            <button
-                id="saveAudioSettingsButton"
-                class="primary-action-button"
-                type="button"
-            >
-                Einstellungen speichern
-            </button>
-        </div>
-    </div>
-
-    <!-- Netzwerk -->
-
-    <div
-        class="system-tab-page"
-        data-system-tab-page="network"
-    >
-        <div class="system-card-grid">
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            HTTP
-                        </span>
-
-                        <h4>
-                            Stream-Verbindung
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="form-field">
-                    <label for="httpBufferInput">
-                        HTTP-Puffer
-                    </label>
-
-                    <select id="httpBufferInput">
-                        <option value="2048">
-                            2048 Byte
-                        </option>
-
-                        <option
-                            value="4096"
-                            selected
-                        >
-                            4096 Byte
-                        </option>
-
-                        <option value="8192">
-                            8192 Byte
-                        </option>
-                    </select>
-                </div>
-
-                <div class="form-field">
-                    <label for="httpTimeoutInput">
-                        Timeout
-                    </label>
-
-                    <input
-                        id="httpTimeoutInput"
-                        type="number"
-                        min="1000"
-                        max="120000"
-                        step="1000"
-                        value="15000"
-                    >
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Wiederverbindung
-                        </span>
-
-                        <h4>
-                            Reconnect
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="form-field">
-                    <label for="reconnectDelayInput">
-                        Verzögerung in Millisekunden
-                    </label>
-
-                    <input
-                        id="reconnectDelayInput"
-                        type="number"
-                        min="500"
-                        max="60000"
-                        step="500"
-                        value="3000"
-                    >
-                </div>
-
-                <div class="form-field">
-                    <label for="maximumRedirectsInput">
-                        Maximale Redirects
-                    </label>
-
-                    <input
-                        id="maximumRedirectsInput"
-                        type="number"
-                        min="0"
-                        max="10"
-                        value="5"
-                    >
-                </div>
-            </article>
-        </div>
-    </div>
-
-    <!-- Firmware -->
-
-    <div
-        class="system-tab-page"
-        data-system-tab-page="firmware"
-    >
-        <div class="system-card-grid">
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Aktualisierung
-                        </span>
-
-                        <h4>
-                            OTA-Firmware
-                        </h4>
-                    </div>
-                </div>
-
-                <p class="system-description">
-                    Das OTA-Update wird später über diese
-                    Oberfläche eingebaut.
-                </p>
-
-                <button
-                    class="secondary-action-button"
-                    type="button"
-                    disabled
-                >
-                    Firmware auswählen
-                </button>
-            </article>
-
-            <article class="system-card danger-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Zurücksetzen
-                        </span>
-
-                        <h4>
-                            Werkseinstellungen
-                        </h4>
-                    </div>
-                </div>
-
-                <p class="system-description">
-                    Löscht später Sender, Einstellungen und
-                    Netzwerkkonfiguration.
-                </p>
-
-                <button
-                    id="factoryResetButton"
-                    class="danger-action-button"
-                    type="button"
-                >
-                    Werkseinstellungen
-                </button>
-            </article>
-        </div>
-    </div>
-
-    <!-- Diagnose -->
-
-    <div
-        class="system-tab-page"
-        data-system-tab-page="diagnostics"
-    >
-        <div class="system-card-grid">
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Audio
-                        </span>
-
-                        <h4>
-                            Laufzeitdaten
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>Sample-Rate</span>
-                        <strong id="diagnosticSampleRate">
-                            –
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Unterläufe</span>
-                        <strong id="diagnosticUnderruns">
-                            –
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Wiedergabe</span>
-                        <strong id="diagnosticPlayback">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-
-            <article class="system-card">
-                <div class="system-card-header">
-                    <div>
-                        <span class="card-label">
-                            Netzwerk
-                        </span>
-
-                        <h4>
-                            Verbindung
-                        </h4>
-                    </div>
-                </div>
-
-                <div class="system-value-list">
-                    <div>
-                        <span>WLAN-Signal</span>
-                        <strong id="diagnosticRssi">
-                            –
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Aktueller Sender</span>
-                        <strong id="diagnosticStation">
-                            –
-                        </strong>
-                    </div>
-                </div>
-            </article>
-        </div>
-    </div>
-</section>
+            </div>
         </main>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- SENDERDIALOG – außerhalb aller Seiten                    -->
-    <!-- ========================================================= -->
-
     <div
-        id="stationModal"
-        class="modal-backdrop hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="stationModalTitle"
-    >
-        <div class="modal-card">
-            <div class="modal-header">
-                <div>
-                    <span class="eyebrow">
-                        Senderverwaltung
-                    </span>
+        id="modalContainer"
+        class="modal-container"
+    ></div>
 
-                    <h3 id="stationModalTitle">
-                        Neuen Sender hinzufügen
-                    </h3>
-                </div>
-
-                <button
-                    id="closeStationModalButton"
-                    class="modal-close-button"
-                    type="button"
-                    aria-label="Dialog schließen"
-                >
-                    ×
-                </button>
-            </div>
-
-            <form id="stationForm">
-                <div class="form-field">
-                    <label for="stationNameInput">
-                        Sendername
-                    </label>
-
-                    <input
-                        id="stationNameInput"
-                        name="name"
-                        type="text"
-                        maxlength="47"
-                        autocomplete="off"
-                        placeholder="z. B. Radio Salü"
-                        required
-                    >
-                </div>
-
-                <div class="form-field">
-                    <label for="stationUrlInput">
-                        Stream-URL
-                    </label>
-
-                    <input
-                        id="stationUrlInput"
-                        name="url"
-                        type="url"
-                        maxlength="255"
-                        autocomplete="off"
-                        placeholder="http://server:port/stream"
-                        required
-                    >
-
-                    <small>
-                        Direkte HTTP- oder HTTPS-Adresse des
-                        Audiostreams.
-                    </small>
-                </div>
-
-                <label class="checkbox-field">
-                    <input
-                        id="stationFavoriteInput"
-                        name="favorite"
-                        type="checkbox"
-                    >
-
-                    <span class="checkbox-indicator">
-                        ✓
-                    </span>
-
-                    <span>
-                        Als Favorit speichern
-                    </span>
-                </label>
-
-                <div
-                    id="stationFormError"
-                    class="form-error hidden"
-                ></div>
-
-                <div class="modal-actions">
-                    <button
-                        id="cancelStationButton"
-                        class="secondary-action-button"
-                        type="button"
-                    >
-                        Abbrechen
-                    </button>
-
-                    <button
-                        id="saveStationButton"
-                        class="primary-action-button"
-                        type="submit"
-                    >
-                        Sender speichern
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="/js/api.js?v=2"></script>
-<script src="/js/player.js?v=2"></script>
-<script src="/js/stations.js?v=2"></script>
-<script src="/js/system.js?v=1"></script>
-<script src="/js/app.js?v=2"></script>
+    <script src="/js/api.js?v=3"></script>
+    <script src="/js/player.js?v=3"></script>
+    <script src="/js/stations.js?v=3"></script>
+    <script src="/js/audio.js?v=1"></script>
+    <script src="/js/wifi.js?v=1"></script>
+    <script src="/js/system.js?v=3"></script>
+    <script src="/js/app.js?v=3"></script>
 </body>
 </html>

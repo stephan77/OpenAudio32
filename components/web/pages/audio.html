@@ -1,1 +1,478 @@
-/* OpenAudio32 Player Styles */
+<section
+    id="audioPage"
+    class="page audio-page"
+    data-page-section="audio"
+>
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">
+                Klangregelung
+            </span>
+
+            <h3>
+                Audio &amp; Equalizer
+            </h3>
+
+            <p>
+                Klang, Kanalbalance und Wiedergabegrenzen des
+                OpenAudio32 einstellen.
+            </p>
+        </div>
+
+        <div class="audio-header-actions">
+            <span
+                id="audioDspStatus"
+                class="audio-status-badge inactive"
+            >
+                DSP deaktiviert
+            </span>
+
+            <button
+                id="resetAudioSettingsButton"
+                class="secondary-action-button"
+                type="button"
+            >
+                Zurücksetzen
+            </button>
+        </div>
+    </div>
+
+    <div
+        id="audioMessage"
+        class="inline-message hidden"
+    ></div>
+
+    <div
+        id="audioLoading"
+        class="audio-loading"
+    >
+        Audio-Einstellungen werden geladen …
+    </div>
+
+    <div
+        id="audioContent"
+        class="audio-content hidden"
+    >
+        <article class="audio-card equalizer-card">
+            <div class="audio-card-header">
+                <div>
+                    <span class="card-label">
+                        Digitale Klangregelung
+                    </span>
+
+                    <h4>
+                        Equalizer
+                    </h4>
+                </div>
+
+                <label class="audio-switch">
+                    <span>
+                        Aktiviert
+                    </span>
+
+                    <input
+                        id="equalizerEnabledInput"
+                        type="checkbox"
+                    >
+
+                    <span class="audio-switch-slider"></span>
+                </label>
+            </div>
+
+            <div class="equalizer-toolbar">
+                <div class="form-field compact">
+                    <label for="equalizerModeInput">
+                        Equalizer-Modus
+                    </label>
+
+                    <select id="equalizerModeInput">
+                        <option value="5">
+                            Einfach – 5 Bänder
+                        </option>
+
+                        <option value="10">
+                            Profi – 10 Bänder
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-field compact">
+                    <label for="equalizerPresetInput">
+                        Klangprofil
+                    </label>
+
+                    <select id="equalizerPresetInput">
+                        <option value="custom">
+                            Benutzerdefiniert
+                        </option>
+
+                        <option value="flat">
+                            Neutral
+                        </option>
+
+                        <option value="bass">
+                            Bass
+                        </option>
+
+                        <option value="treble">
+                            Höhen
+                        </option>
+
+                        <option value="vocal">
+                            Sprache
+                        </option>
+
+                        <option value="rock">
+                            Rock
+                        </option>
+
+                        <option value="electronic">
+                            Electronic
+                        </option>
+
+                        <option value="night">
+                            Nacht
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="equalizer-scale">
+                <span>+12 dB</span>
+                <span>0 dB</span>
+                <span>−12 dB</span>
+            </div>
+
+            <div
+                id="equalizerBands"
+                class="equalizer-bands"
+            >
+                <!-- Wird durch audio.js erzeugt -->
+            </div>
+
+            <div class="equalizer-footer">
+                <span>
+                    Verstärkung je Frequenzband
+                </span>
+
+                <button
+                    id="flattenEqualizerButton"
+                    class="text-action-button"
+                    type="button"
+                >
+                    Alle Bänder auf 0 dB
+                </button>
+            </div>
+        </article>
+
+        <div class="audio-grid">
+            <article class="audio-card">
+                <div class="audio-card-header">
+                    <div>
+                        <span class="card-label">
+                            Klangcharakter
+                        </span>
+
+                        <h4>
+                            Bass &amp; Höhen
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="bassInput">
+                            Bass
+                        </label>
+
+                        <strong id="bassValue">
+                            0 dB
+                        </strong>
+                    </div>
+
+                    <input
+                        id="bassInput"
+                        type="range"
+                        min="-12"
+                        max="12"
+                        step="1"
+                        value="0"
+                    >
+                </div>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="trebleInput">
+                            Höhen
+                        </label>
+
+                        <strong id="trebleValue">
+                            0 dB
+                        </strong>
+                    </div>
+
+                    <input
+                        id="trebleInput"
+                        type="range"
+                        min="-12"
+                        max="12"
+                        step="1"
+                        value="0"
+                    >
+                </div>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        Loudness
+                        <small>
+                            Verstärkt Bass und Höhen bei geringer Lautstärke.
+                        </small>
+                    </span>
+
+                    <input
+                        id="loudnessEnabledInput"
+                        type="checkbox"
+                    >
+
+                    <span class="audio-switch-slider"></span>
+                </label>
+            </article>
+
+            <article class="audio-card">
+                <div class="audio-card-header">
+                    <div>
+                        <span class="card-label">
+                            Stereobild
+                        </span>
+
+                        <h4>
+                            Kanäle
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="balanceInput">
+                            Balance
+                        </label>
+
+                        <strong id="balanceValue">
+                            Mitte
+                        </strong>
+                    </div>
+
+                    <input
+                        id="balanceInput"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        step="1"
+                        value="0"
+                    >
+
+                    <div class="balance-scale">
+                        <span>Links</span>
+                        <span>Mitte</span>
+                        <span>Rechts</span>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="outputModeInput">
+                        Ausgabemodus
+                    </label>
+
+                    <select id="outputModeInput">
+                        <option value="stereo">
+                            Stereo
+                        </option>
+
+                        <option value="mono">
+                            Mono
+                        </option>
+
+                        <option value="left">
+                            Nur linker Kanal
+                        </option>
+
+                        <option value="right">
+                            Nur rechter Kanal
+                        </option>
+                    </select>
+                </div>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        Kanäle vertauschen
+                        <small>
+                            Linken und rechten Ausgang tauschen.
+                        </small>
+                    </span>
+
+                    <input
+                        id="swapChannelsInput"
+                        type="checkbox"
+                    >
+
+                    <span class="audio-switch-slider"></span>
+                </label>
+            </article>
+
+            <article class="audio-card">
+                <div class="audio-card-header">
+                    <div>
+                        <span class="card-label">
+                            Schutzfunktion
+                        </span>
+
+                        <h4>
+                            Limiter
+                        </h4>
+                    </div>
+                </div>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        Limiter aktiviert
+                        <small>
+                            Verhindert digitale Übersteuerung.
+                        </small>
+                    </span>
+
+                    <input
+                        id="limiterEnabledInput"
+                        type="checkbox"
+                        checked
+                    >
+
+                    <span class="audio-switch-slider"></span>
+                </label>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="limiterThresholdInput">
+                            Grenzwert
+                        </label>
+
+                        <strong id="limiterThresholdValue">
+                            −1 dB
+                        </strong>
+                    </div>
+
+                    <input
+                        id="limiterThresholdInput"
+                        type="range"
+                        min="-12"
+                        max="0"
+                        step="1"
+                        value="-1"
+                    >
+                </div>
+
+                <div class="audio-level-display">
+                    <div>
+                        <span>Linker Kanal</span>
+
+                        <div class="level-track">
+                            <span
+                                id="leftLevelBar"
+                                class="level-bar"
+                            ></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span>Rechter Kanal</span>
+
+                        <div class="level-track">
+                            <span
+                                id="rightLevelBar"
+                                class="level-bar"
+                            ></span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="audio-card">
+                <div class="audio-card-header">
+                    <div>
+                        <span class="card-label">
+                            Lautstärkebegrenzung
+                        </span>
+
+                        <h4>
+                            Pegel
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="startupVolumeInput">
+                            Lautstärke nach Neustart
+                        </label>
+
+                        <strong id="startupVolumeValue">
+                            20 %
+                        </strong>
+                    </div>
+
+                    <input
+                        id="startupVolumeInput"
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="20"
+                    >
+                </div>
+
+                <div class="audio-range">
+                    <div class="audio-range-header">
+                        <label for="maximumVolumeInput">
+                            Maximale Lautstärke
+                        </label>
+
+                        <strong id="maximumVolumeValue">
+                            100 %
+                        </strong>
+                    </div>
+
+                    <input
+                        id="maximumVolumeInput"
+                        type="range"
+                        min="10"
+                        max="100"
+                        step="1"
+                        value="100"
+                    >
+                </div>
+
+                <p class="audio-description">
+                    Die maximale Lautstärke begrenzt alle
+                    Lautstärkeänderungen aus Webradio, Spotify
+                    und Weboberfläche.
+                </p>
+            </article>
+        </div>
+
+        <div class="audio-actions">
+            <span
+                id="audioUnsavedHint"
+                class="audio-unsaved-hint hidden"
+            >
+                Nicht gespeicherte Änderungen
+            </span>
+
+            <button
+                id="saveAudioPageButton"
+                class="primary-action-button"
+                type="button"
+            >
+                Audio-Einstellungen speichern
+            </button>
+        </div>
+    </div>
+</section>

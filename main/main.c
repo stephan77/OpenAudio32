@@ -1,7 +1,6 @@
-
-
 #include "audio.h"
-#include "wifi.h"
+#include "wifi_manager.h"
+#include "airplay_player.h"
 
 #include "esp_err.h"
 #include "esp_log.h"
@@ -12,114 +11,70 @@
 #include "radio_player.h"
 #include "settings.h"
 
-#include "spotify_player.h"
+#include "esp_heap_caps.h"
+#include "media_manager.h"
 
 static const char *TAG = "OpenAudio32";
-
-#define WIFI_SSID     "AEGT"
-#define WIFI_PASSWORD "XXX"
 
 void app_main(void)
 {
     ESP_LOGI(TAG, "OpenAudio32 startet");
 
-    esp_err_t nvs_result =
-        nvs_flash_init();
+    ESP_LOGI(TAG, "INTERN frei: %u",
+             (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 
-    if (nvs_result == ESP_ERR_NVS_NO_FREE_PAGES ||
-        nvs_result == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_LOGI(TAG, "PSRAM frei: %u",
+             (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
 
-        ESP_ERROR_CHECK(
-            nvs_flash_erase()
-        );
+    esp_err_t err = nvs_flash_init();
 
-        nvs_result =
-            nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+        err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
     }
 
-    ESP_ERROR_CHECK(
-        nvs_result
-    );
+    ESP_ERROR_CHECK(err);
 
-    ESP_ERROR_CHECK(
-    settings_init()
-    );
-    ESP_ERROR_CHECK(
-    spotify_player_init()
-    );
-    ESP_ERROR_CHECK(
-        station_manager_init()
-    );
+    ESP_ERROR_CHECK(settings_init());
+    ESP_ERROR_CHECK(media_manager_init());
 
-    radio_station_t current_station = {0};
-
-    ESP_ERROR_CHECK(
-        station_manager_get_current(
-            &current_station
-        )
-    );
-
-    ESP_LOGI(
-        TAG,
-        "Gespeicherter Sender: %s",
-        current_station.name
-    );
-
-    ESP_LOGI(
-        TAG,
-        "Stream-URL: %s",
-        current_station.url
-    );
-
-    ESP_ERROR_CHECK(
-        wifi_init_sta(
-            WIFI_SSID,
-            WIFI_PASSWORD
-        )
-    );
-
-    ESP_LOGI(
-        TAG,
-        "WLAN-Verbindung erfolgreich"
-    );
-
-    ESP_ERROR_CHECK(
-        web_server_start()
-    );
-
-    ESP_LOGI(
-        TAG,
-        "Webinterface gestartet"
-    );
-ESP_ERROR_CHECK(
-    spotify_player_start()
-);
-
-ESP_LOGI(
-    TAG,
-    "Spotify Connect gestartet"
-);
-    ESP_ERROR_CHECK(
-        audio_init()
-    );
-
-    ESP_ERROR_CHECK(
-        audio_start()
-    );
+    /*
+     * Audio-Hardware und gemeinsame Audiopipeline zuerst starten.
+     */
+    ESP_ERROR_CHECK(audio_init());
+    ESP_ERROR_CHECK(audio_start());
 
     audio_set_volume(0.10f);
     audio_set_mute(false);
 
-    ESP_ERROR_CHECK(
-        radio_player_init()
-    );
+    /*
+     * Netzwerk starten.
+     */
+    ESP_ERROR_CHECK(wifi_manager_init());
+    ESP_ERROR_CHECK(wifi_manager_start());
 
-    ESP_ERROR_CHECK(
-        radio_player_play_current()
-    );
+    ESP_ERROR_CHECK(station_manager_init());
+    ESP_ERROR_CHECK(radio_player_init());
 
-    ESP_LOGI(
-        TAG,
-        "Gespeicherter Radiosender gestartet"
-    );
+    /*
+     * AirPlay erst initialisieren, wenn Audio und Netzwerk vorhanden sind.
+     */
+    ESP_ERROR_CHECK(airplay_player_init());
+    ESP_ERROR_CHECK(airplay_player_start());
+
+    ESP_LOGI(TAG, "AirPlay-Grunddienst gestartet");
+
+    ESP_ERROR_CHECK(web_server_start());
+    ESP_LOGI(TAG, "Webinterface gestartet");
+
+    esp_err_t radio_result = radio_player_play_current();
+
+    if (radio_result != ESP_OK) {
+        ESP_LOGW(
+            TAG,
+            "Gespeicherter Radiosender konnte noch nicht gestartet werden: %s",
+            esp_err_to_name(radio_result)
+        );
+    }
 }

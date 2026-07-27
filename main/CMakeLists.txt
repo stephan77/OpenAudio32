@@ -6,6 +6,7 @@ idf_component_register(
         "."
 
     REQUIRES
+        json
         audio
         network
         streamer
@@ -13,5 +14,6 @@ idf_component_register(
         stations
         settings
         nvs_flash
-        spotify
+        media_manager
+        airplay_player
 )

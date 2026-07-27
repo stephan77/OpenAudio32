@@ -630,4 +630,201 @@
     .station-action-button {
         width: 100%;
     }
+/* =========================================================
+   Werkzeugleiste
+   ========================================================= */
+
+.stations-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+
+    margin-bottom: 22px;
+}
+
+.stations-search {
+    position: relative;
+
+    flex: 1;
+    max-width: 560px;
+}
+
+.stations-search input {
+    box-sizing: border-box;
+
+    width: 100%;
+    min-height: 48px;
+    padding:
+        0
+        46px
+        0
+        43px;
+
+    border: 1px solid var(--border);
+    border-radius: 15px;
+
+    outline: none;
+
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    transition:
+        border-color 150ms ease,
+        background 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.stations-search input:focus {
+    border-color:
+        rgba(56, 189, 248, 0.65);
+
+    background:
+        rgba(255, 255, 255, 0.065);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(56, 189, 248, 0.1);
+}
+
+.stations-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+
+    transform: translateY(-50%);
+
+    color: var(--text-muted);
+    font-size: 18px;
+
+    pointer-events: none;
+}
+
+.stations-search-clear {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+
+    display: grid;
+    place-items: center;
+
+    width: 31px;
+    height: 31px;
+
+    transform: translateY(-50%);
+
+    border: 0;
+    border-radius: 9px;
+
+    color: var(--text-muted);
+    font-size: 20px;
+
+    background: transparent;
+    cursor: pointer;
+}
+
+.stations-search-clear:hover {
+    color: var(--text);
+    background:
+        rgba(255, 255, 255, 0.07);
+}
+
+.stations-toolbar-information {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.stations-toolbar-information span {
+    padding: 7px 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 999px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+}
+
+/* =========================================================
+   Ladeanzeige
+   ========================================================= */
+
+.stations-loading-content {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+
+    text-align: center;
+}
+
+.stations-loading-content strong {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.stations-loading-content small {
+    color: var(--text-muted);
+}
+
+.stations-loading-spinner {
+    width: 29px;
+    height: 29px;
+
+    border: 3px solid
+        rgba(148, 163, 184, 0.16);
+
+    border-top-color: #38bdf8;
+    border-radius: 50%;
+
+    animation:
+        stations-loading-spin
+        700ms
+        linear
+        infinite;
+}
+
+@keyframes stations-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.visually-hidden {
+    position: absolute !important;
+
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+@media (max-width: 760px) {
+    .stations-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .stations-search {
+        max-width: none;
+    }
+
+    .stations-toolbar-information {
+        justify-content: space-between;
+    }
+}
+
 }

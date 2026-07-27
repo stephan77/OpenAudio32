@@ -1,0 +1,54 @@
+/* =========================================================
+   OpenAudio32 – WLAN & Netzwerk
+   ========================================================= */
+.wifi-page { display: grid; gap: 20px; }
+.wifi-header-actions { display: flex; align-items: center; gap: 12px; }
+.wifi-status-badge { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid var(--border); background: rgba(255,255,255,.045); }
+.wifi-status-badge.online { color: #a7f3d0; border-color: rgba(52,211,153,.22); background: rgba(52,211,153,.1); }
+.wifi-status-badge.offline { color: #fecaca; border-color: rgba(248,113,113,.2); background: rgba(248,113,113,.08); }
+.wifi-loading, .wifi-inline-loading, .wifi-empty { display: grid; place-items: center; min-height: 140px; padding: 24px; border: 1px solid var(--border); border-radius: 22px; color: var(--text-muted); background: rgba(15,26,44,.7); }
+.wifi-inline-loading, .wifi-empty { min-height: 110px; margin-top: 14px; border-radius: 16px; }
+.wifi-content { display: grid; gap: 18px; }
+.wifi-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+.wifi-grid-top { align-items: stretch; }
+.wifi-card { position: relative; overflow: hidden; padding: 22px; border: 1px solid rgba(148,163,184,.13); border-radius: 22px; background: linear-gradient(145deg,rgba(22,37,61,.96),rgba(12,23,40,.98)); box-shadow: 0 18px 48px rgba(0,0,0,.19); }
+.wifi-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.wifi-card-header h4 { margin: 4px 0 0; font-size: 20px; }
+.wifi-card-meta { color: var(--text-muted); font-size: 11px; }
+.wifi-card-description { margin: -4px 0 18px; color: var(--text-muted); line-height: 1.6; }
+.wifi-signal-icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 17px; color: #03141d; font-size: 24px; background: linear-gradient(135deg,#7dd3fc,#38bdf8); box-shadow: 0 12px 28px rgba(56,189,248,.2); }
+.wifi-current-summary { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.wifi-current-summary strong { color: #a7f3d0; }
+.wifi-current-summary span { color: var(--text-muted); font-size: 12px; }
+.wifi-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 0; }
+.wifi-facts div { min-width: 0; padding: 12px 13px; border: 1px solid rgba(148,163,184,.09); border-radius: 13px; background: rgba(2,8,18,.22); }
+.wifi-facts dt { color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.wifi-facts dd { overflow: hidden; margin: 5px 0 0; color: #e2e8f0; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.compact-facts { margin: 16px 0; }
+.wifi-card-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.danger-action-button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border: 1px solid rgba(248,113,113,.22); border-radius: 14px; color: #fecaca; font-family: inherit; font-size: 13px; font-weight: 750; background: rgba(248,113,113,.08); cursor: pointer; }
+.password-field { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.password-toggle { min-width: 88px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-muted); background: rgba(255,255,255,.04); cursor: pointer; }
+.wifi-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.wifi-search-field { display: flex; align-items: center; gap: 9px; flex: 1; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 13px; background: rgba(255,255,255,.04); }
+.wifi-search-field input { width: 100%; border: 0; outline: 0; color: var(--text); font: inherit; background: transparent; }
+.wifi-checkbox { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }
+.wifi-network-list, .wifi-saved-list { display: grid; gap: 10px; margin-top: 16px; }
+.wifi-network-row, .wifi-saved-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid rgba(148,163,184,.11); border-radius: 16px; background: rgba(2,8,18,.2); }
+.wifi-network-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: #bae6fd; background: rgba(56,189,248,.09); }
+.wifi-network-main { min-width: 0; }
+.wifi-network-main strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wifi-network-main span { display: block; margin-top: 5px; color: var(--text-muted); font-size: 11px; }
+.wifi-network-actions { display: flex; gap: 8px; }
+.wifi-row-button { min-height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: 11px; color: #cbd5e1; font: inherit; font-size: 11px; font-weight: 750; background: rgba(255,255,255,.04); cursor: pointer; }
+.wifi-row-button.primary { color: #bae6fd; border-color: rgba(56,189,248,.22); background: rgba(56,189,248,.09); }
+.wifi-row-button.danger { color: #fecaca; }
+.wifi-priority { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9px; color: #bae6fd; font-size: 11px; font-weight: 900; background: rgba(56,189,248,.1); }
+.wifi-static-ip-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.wifi-diagnostic-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 18px; }
+.wifi-diagnostic-grid div { padding: 13px; border: 1px solid rgba(148,163,184,.09); border-radius: 13px; background: rgba(2,8,18,.22); }
+.wifi-diagnostic-grid span { display: block; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.wifi-diagnostic-grid strong { display: block; margin-top: 6px; font-size: 12px; }
+.wifi-danger-zone { border-color: rgba(248,113,113,.16); }
+@media (max-width: 900px) { .wifi-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .wifi-header-actions, .wifi-toolbar { display: grid; } .wifi-facts, .wifi-static-ip-fields, .wifi-diagnostic-grid { grid-template-columns: 1fr; } .wifi-network-row, .wifi-saved-row { grid-template-columns: auto minmax(0,1fr); } .wifi-network-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr; } }

@@ -1,1 +1,296 @@
-/* OpenAudio32 Player Styles */s
+<section id="wifiPage" class="page wifi-page" data-page-section="wifi">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Netzwerkverwaltung</span>
+            <h3>WLAN & Netzwerk</h3>
+            <p>
+                Verbindung, bekannte Netzwerke, Einrichtungs-WLAN und
+                Netzwerkdiagnose des OpenAudio32 verwalten.
+            </p>
+        </div>
+
+        <div class="wifi-header-actions">
+            <span id="wifiConnectionBadge" class="wifi-status-badge offline">
+                Nicht verbunden
+            </span>
+
+            <button id="wifiScanButton" class="primary-action-button" type="button">
+                <span>⌁</span>
+                Netzwerke suchen
+            </button>
+        </div>
+    </div>
+
+    <div id="wifiMessage" class="inline-message hidden"></div>
+
+    <div id="wifiLoading" class="wifi-loading">
+        WLAN-Daten werden geladen …
+    </div>
+
+    <div id="wifiContent" class="wifi-content hidden">
+        <div class="wifi-grid wifi-grid-top">
+            <article class="wifi-card wifi-current-card">
+                <div class="wifi-card-header">
+                    <div>
+                        <span class="card-label">Aktuelle Verbindung</span>
+                        <h4 id="wifiCurrentSsid">Nicht verbunden</h4>
+                    </div>
+                    <div id="wifiSignalIcon" class="wifi-signal-icon" aria-hidden="true">⌁</div>
+                </div>
+
+                <div class="wifi-current-summary">
+                    <strong id="wifiCurrentState">Offline</strong>
+                    <span id="wifiCurrentSecurity">–</span>
+                </div>
+
+                <dl class="wifi-facts">
+                    <div><dt>Signal</dt><dd id="wifiCurrentRssi">– dBm</dd></div>
+                    <div><dt>Kanal</dt><dd id="wifiCurrentChannel">–</dd></div>
+                    <div><dt>IP-Adresse</dt><dd id="wifiCurrentIp">–</dd></div>
+                    <div><dt>Gateway</dt><dd id="wifiCurrentGateway">–</dd></div>
+                    <div><dt>DNS</dt><dd id="wifiCurrentDns">–</dd></div>
+                    <div><dt>MAC-Adresse</dt><dd id="wifiCurrentMac">–</dd></div>
+                    <div><dt>Hostname</dt><dd id="wifiCurrentHostname">OpenAudio32</dd></div>
+                    <div><dt>Internet</dt><dd id="wifiInternetState">Unbekannt</dd></div>
+                </dl>
+
+                <div class="wifi-card-actions">
+                    <button id="wifiReconnectButton" class="secondary-action-button" type="button">
+                        Neu verbinden
+                    </button>
+                    <button id="wifiDisconnectButton" class="danger-action-button" type="button">
+                        Trennen
+                    </button>
+                </div>
+            </article>
+
+            <article class="wifi-card wifi-ap-card">
+                <div class="wifi-card-header">
+                    <div>
+                        <span class="card-label">Einrichtungs-WLAN</span>
+                        <h4>OpenAudio32 Setup</h4>
+                    </div>
+
+                    <label class="audio-switch">
+                        <input id="wifiApEnabledInput" type="checkbox">
+                        <span class="audio-switch-slider"></span>
+                    </label>
+                </div>
+
+                <p class="wifi-card-description">
+                    Das Einrichtungs-WLAN hält das Gerät erreichbar, auch wenn
+                    kein bekanntes Netzwerk verfügbar ist.
+                </p>
+
+                <div class="form-field">
+                    <label for="wifiApSsidInput">SSID</label>
+                    <input id="wifiApSsidInput" type="text" maxlength="32" autocomplete="off">
+                </div>
+
+                <div class="form-field">
+                    <label for="wifiApPasswordInput">Passwort</label>
+                    <div class="password-field">
+                        <input id="wifiApPasswordInput" type="password" minlength="8" maxlength="63" autocomplete="new-password">
+                        <button class="password-toggle" type="button" data-password-target="wifiApPasswordInput">Anzeigen</button>
+                    </div>
+                    <small>Mindestens 8 Zeichen. Leer nur für ein offenes Setup-WLAN.</small>
+                </div>
+
+                <div class="form-field compact">
+                    <label for="wifiApModeInput">Betriebsart</label>
+                    <select id="wifiApModeInput">
+                        <option value="always">Immer aktiv</option>
+                        <option value="fallback">Nur ohne Verbindung</option>
+                        <option value="manual">Nur manuell</option>
+                    </select>
+                </div>
+
+                <dl class="wifi-facts compact-facts">
+                    <div><dt>IP-Adresse</dt><dd id="wifiApIp">192.168.4.1</dd></div>
+                    <div><dt>Clients</dt><dd id="wifiApClients">0</dd></div>
+                </dl>
+
+                <div class="wifi-card-actions">
+                    <button id="wifiSaveApButton" class="primary-action-button" type="button">
+                        Setup-WLAN speichern
+                    </button>
+                </div>
+            </article>
+        </div>
+
+        <article class="wifi-card">
+            <div class="wifi-card-header">
+                <div>
+                    <span class="card-label">WLAN-Scan</span>
+                    <h4>Verfügbare Netzwerke</h4>
+                </div>
+                <span id="wifiScanTimestamp" class="wifi-card-meta">Noch nicht gesucht</span>
+            </div>
+
+            <div class="wifi-toolbar">
+                <div class="wifi-search-field">
+                    <span aria-hidden="true">⌕</span>
+                    <input id="wifiNetworkSearchInput" type="search" placeholder="Netzwerk filtern …">
+                </div>
+                <label class="wifi-checkbox">
+                    <input id="wifiShowHiddenInput" type="checkbox">
+                    <span>Versteckte Netzwerke anzeigen</span>
+                </label>
+            </div>
+
+            <div id="wifiNetworksLoading" class="wifi-inline-loading hidden">
+                Netzwerke werden gesucht …
+            </div>
+
+            <div id="wifiNetworksEmpty" class="wifi-empty hidden">
+                Keine Netzwerke gefunden.
+            </div>
+
+            <div id="wifiNetworksList" class="wifi-network-list"></div>
+        </article>
+
+        <article class="wifi-card">
+            <div class="wifi-card-header">
+                <div>
+                    <span class="card-label">Automatische Verbindung</span>
+                    <h4>Gespeicherte Netzwerke</h4>
+                </div>
+                <span id="wifiSavedCount" class="wifi-card-meta">0 Netzwerke</span>
+            </div>
+
+            <p class="wifi-card-description">
+                OpenAudio32 versucht bekannte Netzwerke in der angegebenen Reihenfolge.
+                Netzwerke mit gleicher SSID können über FRITZ!Mesh und Repeater roamen.
+            </p>
+
+            <div id="wifiSavedEmpty" class="wifi-empty hidden">
+                Noch keine WLAN-Netzwerke gespeichert.
+            </div>
+
+            <div id="wifiSavedList" class="wifi-saved-list"></div>
+        </article>
+
+        <div class="wifi-grid">
+            <article class="wifi-card">
+                <div class="wifi-card-header">
+                    <div>
+                        <span class="card-label">IP-Konfiguration</span>
+                        <h4>DHCP & feste Adresse</h4>
+                    </div>
+                </div>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        DHCP verwenden
+                        <small>Automatische IP-Konfiguration durch den Router.</small>
+                    </span>
+                    <input id="wifiDhcpInput" type="checkbox" checked>
+                    <span class="audio-switch-slider"></span>
+                </label>
+
+                <div id="wifiStaticIpFields" class="wifi-static-ip-fields hidden">
+                    <div class="form-field"><label for="wifiStaticIpInput">IP-Adresse</label><input id="wifiStaticIpInput" type="text" inputmode="decimal"></div>
+                    <div class="form-field"><label for="wifiSubnetInput">Subnetzmaske</label><input id="wifiSubnetInput" type="text" inputmode="decimal"></div>
+                    <div class="form-field"><label for="wifiGatewayInput">Gateway</label><input id="wifiGatewayInput" type="text" inputmode="decimal"></div>
+                    <div class="form-field"><label for="wifiDnsInput">DNS-Server</label><input id="wifiDnsInput" type="text" inputmode="decimal"></div>
+                </div>
+
+                <div class="form-field">
+                    <label for="wifiHostnameInput">Hostname</label>
+                    <input id="wifiHostnameInput" type="text" maxlength="32" value="OpenAudio32">
+                    <small>Erreichbar über <strong>openaudio32.local</strong>, sofern mDNS im Netzwerk verfügbar ist.</small>
+                </div>
+
+                <button id="wifiSaveNetworkSettingsButton" class="primary-action-button" type="button">
+                    Netzwerkeinstellungen speichern
+                </button>
+            </article>
+
+            <article class="wifi-card">
+                <div class="wifi-card-header">
+                    <div>
+                        <span class="card-label">Diagnose</span>
+                        <h4>Verbindung prüfen</h4>
+                    </div>
+                </div>
+
+                <div class="wifi-diagnostic-grid">
+                    <div><span>Gateway</span><strong id="wifiDiagGateway">Nicht geprüft</strong></div>
+                    <div><span>DNS</span><strong id="wifiDiagDns">Nicht geprüft</strong></div>
+                    <div><span>Internet</span><strong id="wifiDiagInternet">Nicht geprüft</strong></div>
+                    <div><span>Latenz</span><strong id="wifiDiagLatency">– ms</strong></div>
+                    <div><span>Reconnects</span><strong id="wifiDiagReconnects">0</strong></div>
+                    <div><span>Letzter Fehler</span><strong id="wifiDiagLastError">Keiner</strong></div>
+                </div>
+
+                <button id="wifiRunDiagnosticsButton" class="secondary-action-button" type="button">
+                    Diagnose starten
+                </button>
+            </article>
+        </div>
+
+        <article class="wifi-card wifi-danger-zone">
+            <div class="wifi-card-header">
+                <div>
+                    <span class="card-label">Zurücksetzen</span>
+                    <h4>Netzwerkdaten löschen</h4>
+                </div>
+            </div>
+            <p class="wifi-card-description">
+                Löscht alle gespeicherten WLANs und setzt das Setup-WLAN auf Werkseinstellungen zurück.
+            </p>
+            <button id="wifiResetButton" class="danger-action-button" type="button">
+                Netzwerkdaten zurücksetzen
+            </button>
+        </article>
+    </div>
+
+    <div id="wifiConnectModal" class="modal-backdrop hidden">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="wifiConnectModalTitle">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">WLAN verbinden</span>
+                    <h3 id="wifiConnectModalTitle">Netzwerk</h3>
+                </div>
+                <button id="wifiConnectModalCloseButton" class="modal-close-button" type="button">×</button>
+            </div>
+
+            <form id="wifiConnectForm">
+                <input id="wifiConnectSsidInput" type="hidden">
+
+                <div class="form-field">
+                    <label for="wifiConnectPasswordInput">Passwort</label>
+                    <div class="password-field">
+                        <input id="wifiConnectPasswordInput" type="password" maxlength="63" autocomplete="current-password">
+                        <button class="password-toggle" type="button" data-password-target="wifiConnectPasswordInput">Anzeigen</button>
+                    </div>
+                </div>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        Netzwerk speichern
+                        <small>Bei späteren Starts automatisch verbinden.</small>
+                    </span>
+                    <input id="wifiConnectSaveInput" type="checkbox" checked>
+                    <span class="audio-switch-slider"></span>
+                </label>
+
+                <label class="audio-switch full-width">
+                    <span>
+                        Automatisch verbinden
+                        <small>Dieses Netzwerk in die Verbindungsliste aufnehmen.</small>
+                    </span>
+                    <input id="wifiConnectAutoInput" type="checkbox" checked>
+                    <span class="audio-switch-slider"></span>
+                </label>
+
+                <div id="wifiConnectError" class="form-error hidden"></div>
+
+                <div class="modal-actions">
+                    <button id="wifiConnectCancelButton" class="secondary-action-button" type="button">Abbrechen</button>
+                    <button id="wifiConnectSubmitButton" class="primary-action-button" type="submit">Verbinden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

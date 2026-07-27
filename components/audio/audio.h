@@ -36,6 +36,9 @@ esp_err_t audio_submit(
  * Leert noch gepufferte Audiodaten.
  */
 esp_err_t audio_flush(uint32_t timeout_ms);
+esp_err_t audio_clear_buffer(void);
+
+size_t audio_get_buffered_bytes(void);
 void audio_set_playback_active(bool active);
 
 void audio_set_volume(float volume);
@@ -51,6 +54,44 @@ bool audio_is_playback_active(void);
 esp_err_t audio_set_sample_rate(uint32_t sample_rate);
 
 uint32_t audio_get_sample_rate(void);
+
+#define AUDIO_EQUALIZER_BAND_COUNT 10
+
+typedef struct {
+    bool equalizer_enabled;
+
+    /*
+     * Frequenzbänder:
+     * 31, 62, 125, 250, 500,
+     * 1000, 2000, 4000, 8000, 16000 Hz
+     *
+     * Wertebereich: -12,0 bis +12,0 dB
+     */
+    float equalizer_bands_db[
+        AUDIO_EQUALIZER_BAND_COUNT
+    ];
+
+    float bass_db;
+    float treble_db;
+    float balance;
+
+    bool loudness_enabled;
+    bool limiter_enabled;
+    float limiter_threshold_db;
+
+    uint8_t startup_volume;
+    uint8_t maximum_volume;
+} audio_settings_t;
+
+esp_err_t audio_get_settings(
+    audio_settings_t *settings
+);
+
+esp_err_t audio_set_settings(
+    const audio_settings_t *settings
+);
+
+esp_err_t audio_reset_settings(void);
 #ifdef __cplusplus
 }
 #endif

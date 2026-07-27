@@ -6,6 +6,7 @@ window.OpenAudioStations = (() => {
     let stations = [];
     let editingStationId = null;
     let initialized = false;
+    let globalEventsBound = false;
     let messageTimer = null;
 
     let stationsGrid;
@@ -622,114 +623,136 @@ window.OpenAudioStations = (() => {
             break;
         }
     }
+function handleGlobalKeydown(event) {
+    if (
+        event.key === "Escape" &&
+        stationModal &&
+        !stationModal.classList.contains("hidden")
+    ) {
+        closeModal();
+    }
+}
+function bindEvents() {
+    addStationButton?.addEventListener(
+        "click",
+        openAddModal
+    );
 
-    function bindEvents() {
-        addStationButton?.addEventListener(
-            "click",
-            openAddModal
-        );
+    emptyAddStationButton?.addEventListener(
+        "click",
+        openAddModal
+    );
 
-        emptyAddStationButton?.addEventListener(
-            "click",
-            openAddModal
-        );
+    closeStationModalButton?.addEventListener(
+        "click",
+        closeModal
+    );
 
-        closeStationModalButton?.addEventListener(
-            "click",
-            closeModal
-        );
+    cancelStationButton?.addEventListener(
+        "click",
+        closeModal
+    );
 
-        cancelStationButton?.addEventListener(
-            "click",
-            closeModal
-        );
+    stationForm?.addEventListener(
+        "submit",
+        saveStation
+    );
 
-        stationForm?.addEventListener(
-            "submit",
-            saveStation
-        );
-
-        stationModal?.addEventListener(
-            "click",
-            (event) => {
-                if (event.target === stationModal) {
-                    closeModal();
-                }
+    stationModal?.addEventListener(
+        "click",
+        (event) => {
+            if (event.target === stationModal) {
+                closeModal();
             }
-        );
+        }
+    );
 
+    if (!globalEventsBound) {
         document.addEventListener(
             "keydown",
-            (event) => {
-                if (
-                    event.key === "Escape" &&
-                    stationModal &&
-                    !stationModal.classList.contains("hidden")
-                ) {
-                    closeModal();
-                }
-            }
+            handleGlobalKeydown
         );
+
+        globalEventsBound = true;
+    }
+}
+
+function init() {
+    /*
+     * Die Seitenelemente werden bei jeder SPA-Navigation
+     * neu in pageContent eingesetzt. Deshalb müssen die
+     * DOM-Referenzen ebenfalls jedes Mal neu ermittelt werden.
+     */
+    stationsGrid = $("stationsGrid");
+    stationsLoading = $("stationsLoading");
+    stationsEmpty = $("stationsEmpty");
+    stationsMessage = $("stationsMessage");
+
+    addStationButton = $("addStationButton");
+    emptyAddStationButton =
+        $("emptyAddStationButton");
+
+    stationModal = $("stationModal");
+    stationModalTitle =
+        $("stationModalTitle");
+
+    closeStationModalButton =
+        $("closeStationModalButton");
+
+    cancelStationButton =
+        $("cancelStationButton");
+
+    stationForm = $("stationForm");
+    stationNameInput =
+        $("stationNameInput");
+
+    stationUrlInput =
+        $("stationUrlInput");
+
+    stationFavoriteInput =
+        $("stationFavoriteInput");
+
+    stationFormError =
+        $("stationFormError");
+
+    saveStationButton =
+        $("saveStationButton");
+
+    if (!stationsGrid) {
+        initialized = false;
+
+        console.error(
+            "Senderseite wurde im HTML nicht gefunden."
+        );
+
+        return false;
     }
 
-    function init() {
-        if (initialized) {
-            return;
-        }
+    bindEvents();
 
-        stationsGrid = $("stationsGrid");
-        stationsLoading = $("stationsLoading");
-        stationsEmpty = $("stationsEmpty");
-        stationsMessage = $("stationsMessage");
+    initialized = true;
 
-        addStationButton = $("addStationButton");
-        emptyAddStationButton =
-            $("emptyAddStationButton");
+    console.log(
+        "OpenAudio32 Stations-Modul initialisiert"
+    );
 
-        stationModal = $("stationModal");
-        stationModalTitle =
-            $("stationModalTitle");
-
-        closeStationModalButton =
-            $("closeStationModalButton");
-
-        cancelStationButton =
-            $("cancelStationButton");
-
-        stationForm = $("stationForm");
-        stationNameInput =
-            $("stationNameInput");
-
-        stationUrlInput =
-            $("stationUrlInput");
-
-        stationFavoriteInput =
-            $("stationFavoriteInput");
-
-        stationFormError =
-            $("stationFormError");
-
-        saveStationButton =
-            $("saveStationButton");
-
-        if (!stationsGrid) {
-            console.error(
-                "Senderseite wurde im HTML nicht gefunden."
-            );
-            return;
-        }
-
-        bindEvents();
-
-        initialized = true;
-
-        console.log(
-            "OpenAudio32 Stations-Modul gestartet"
-        );
-    }
-
+    return true;
+}
     return {
+
         init,
+
         load
+
     };
 })();
+window.initializeStationsPage = async function () {
+    const initialized =
+        window.OpenAudioStations.init();
+
+    if (!initialized) {
+        return;
+    }
+
+    await window.OpenAudioStations.load();
+};

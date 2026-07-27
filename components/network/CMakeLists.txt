@@ -1,6 +1,6 @@
 idf_component_register(
     SRCS
-        "wifi.c"
+        "wifi_manager.c"
 
     INCLUDE_DIRS
         "."
@@ -9,5 +9,6 @@ idf_component_register(
         esp_wifi
         esp_event
         esp_netif
+        nvs_flash
         freertos
 )

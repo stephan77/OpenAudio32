@@ -397,8 +397,23 @@ window.OpenAudioPlayer = (() => {
             }
         );
     }
+function destroy() {
+    if (statusTimer !== null) {
+        window.clearInterval(statusTimer);
+        statusTimer = null;
+    }
 
+    if (volumeTimer !== null) {
+        window.clearTimeout(volumeTimer);
+        volumeTimer = null;
+    }
+}
     function init() {
+
+    if (statusTimer !== null) {
+        window.clearInterval(statusTimer);
+        statusTimer = null;
+    }
         volumeSlider = $("volumeSlider");
         volumeValue = $("volumeValue");
         muteButton = $("muteButton");
@@ -447,6 +462,10 @@ window.OpenAudioPlayer = (() => {
 
     return {
         init,
+        destroy,
         loadStatus
     };
 })();
+window.initializePlayerPage = async function () {
+    window.OpenAudioPlayer.init();
+};

@@ -12,8 +12,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "esp_heap_caps.h"
+#include "media_manager.h"
 
-#define RADIO_PLAYER_TASK_STACK_SIZE 32768
+#define RADIO_PLAYER_TASK_STACK_SIZE 20480
 #define RADIO_PLAYER_TASK_PRIORITY   7
 #define RADIO_PLAYER_TASK_CORE       1
 
@@ -26,7 +28,12 @@ static radio_station_t active_station = {0};
 
 static bool initialized = false;
 static bool task_running = false;
-
+static esp_err_t radio_player_media_stop(void)
+{
+    return radio_player_stop(
+        5000U
+    );
+}
 static void radio_player_task(void *argument)
 {
     radio_station_t station =
@@ -76,43 +83,91 @@ static void radio_player_task(void *argument)
         xSemaphoreGive(radio_mutex);
     }
 
-    ESP_LOGI(
-        TAG,
-        "Radio-Task beendet"
-    );
+(void)media_manager_release(
 
-    vTaskDelete(NULL);
+    MEDIA_SOURCE_RADIO
+
+);
+
+ESP_LOGI(
+
+    TAG,
+
+    "Radio-Task beendet"
+
+);
+
+vTaskDelete(NULL);
 }
 
 esp_err_t radio_player_init(void)
+
 {
+
     if (initialized) {
+
         return ESP_OK;
+
     }
 
     radio_mutex =
+
         xSemaphoreCreateMutex();
 
     if (radio_mutex == NULL) {
+
         return ESP_ERR_NO_MEM;
+
+    }
+
+    esp_err_t result =
+
+        media_manager_register_source(
+
+            MEDIA_SOURCE_RADIO,
+
+            radio_player_media_stop
+
+        );
+
+    if (result != ESP_OK) {
+
+        vSemaphoreDelete(
+
+            radio_mutex
+
+        );
+
+        radio_mutex = NULL;
+
+        return result;
+
     }
 
     streamer_radio_request_stop();
 
     memset(
+
         &active_station,
+
         0,
+
         sizeof(active_station)
+
     );
 
     initialized = true;
 
     ESP_LOGI(
+
         TAG,
+
         "Radio Player initialisiert"
+
     );
 
     return ESP_OK;
+
 }
 
 bool radio_player_is_running(void)
@@ -225,15 +280,18 @@ esp_err_t radio_player_play_station(
         return result;
     }
 
-    result = radio_player_stop(3000);
+    result =
+        radio_player_stop(
+            3000U
+        );
 
     if (result != ESP_OK) {
         return result;
     }
 
     result =
-        station_manager_set_current(
-            station_id
+        media_manager_activate(
+            MEDIA_SOURCE_RADIO
         );
 
     if (result != ESP_OK) {
@@ -247,11 +305,34 @@ esp_err_t radio_player_play_station(
             pdMS_TO_TICKS(500)
         ) != pdTRUE) {
 
+        (void)media_manager_release(
+            MEDIA_SOURCE_RADIO
+        );
+
         return ESP_ERR_TIMEOUT;
     }
 
-    active_station = station;
-    task_running = true;
+    active_station =
+        station;
+
+    task_running =
+        true;
+
+    ESP_LOGI(
+        TAG,
+        "Free internal: %u",
+        (unsigned)heap_caps_get_free_size(
+            MALLOC_CAP_INTERNAL
+        )
+    );
+
+    ESP_LOGI(
+        TAG,
+        "Largest block: %u",
+        (unsigned)heap_caps_get_largest_free_block(
+            MALLOC_CAP_INTERNAL
+        )
+    );
 
     BaseType_t task_result =
         xTaskCreatePinnedToCore(
@@ -265,15 +346,43 @@ esp_err_t radio_player_play_station(
         );
 
     if (task_result != pdPASS) {
-        task_running = false;
-        radio_task_handle = NULL;
+        task_running =
+            false;
 
-        xSemaphoreGive(radio_mutex);
+        radio_task_handle =
+            NULL;
+
+        xSemaphoreGive(
+            radio_mutex
+        );
+
+        (void)media_manager_release(
+            MEDIA_SOURCE_RADIO
+        );
 
         return ESP_ERR_NO_MEM;
     }
 
-    xSemaphoreGive(radio_mutex);
+    xSemaphoreGive(
+        radio_mutex
+    );
+
+    result =
+        station_manager_set_current(
+            station_id
+        );
+
+    if (result != ESP_OK) {
+        streamer_radio_request_stop();
+
+        ESP_LOGE(
+            TAG,
+            "Aktueller Sender konnte nicht gespeichert werden: %s",
+            esp_err_to_name(result)
+        );
+
+        return result;
+    }
 
     return ESP_OK;
 }

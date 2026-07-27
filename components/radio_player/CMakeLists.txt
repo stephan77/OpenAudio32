@@ -10,4 +10,5 @@ idf_component_register(
         stations
         freertos
         audio
+        media_manager
 )

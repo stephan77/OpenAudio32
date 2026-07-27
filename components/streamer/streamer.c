@@ -14,6 +14,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_crt_bundle.h"
+#include "esp_heap_caps.h"
 
 #define HTTP_BUFFER_SIZE 4096
 #define WAV_HEADER_BUFFER_SIZE 512
@@ -825,7 +826,19 @@ esp_err_t streamer_play_mp3_radio(const char *url)
             }
 
             radio_http_context_t http_context = {0};
-
+ESP_LOGI(
+    TAG,
+    "Vor TLS: intern frei=%u, groesster Block=%u, PSRAM frei=%u",
+    (unsigned)heap_caps_get_free_size(
+        MALLOC_CAP_INTERNAL
+    ),
+    (unsigned)heap_caps_get_largest_free_block(
+        MALLOC_CAP_INTERNAL
+    ),
+    (unsigned)heap_caps_get_free_size(
+        MALLOC_CAP_SPIRAM
+    )
+);
             ESP_LOGI(
                 TAG,
                 "Verbinde mit Webradio: %s",

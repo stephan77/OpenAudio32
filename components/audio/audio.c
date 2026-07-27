@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
-
+#include "audio_dsp.h"
 #include "driver/i2s_std.h"
 #include "esp_check.h"
 #include "esp_log.h"
@@ -104,7 +104,29 @@ static esp_err_t write_processed_block(
         output[index + 1] =
             (int16_t)((float)input[index + 1] * active_gain);
     }
+    esp_err_t dsp_result =
 
+        audio_dsp_process_s16(
+
+            output,
+
+            frame_count
+
+        );
+
+    if (dsp_result != ESP_OK) {
+
+        ESP_LOGW(
+
+            TAG,
+
+            "DSP-Verarbeitung fehlgeschlagen: %s",
+
+            esp_err_to_name(dsp_result)
+
+        );
+
+    }
     const size_t bytes_to_write =
         frame_count * AUDIO_CHANNEL_COUNT * sizeof(int16_t);
 
@@ -136,12 +158,12 @@ static void audio_output_task(void *argument)
     while (true) {
         size_t received_size = 0;
 
-        uint8_t *received = xRingbufferReceiveUpTo(
-            audio_ring_buffer,
-            &received_size,
-            0,
-            AUDIO_BLOCK_BYTES
-        );
+uint8_t *received = xRingbufferReceiveUpTo(
+    audio_ring_buffer,
+    &received_size,
+    pdMS_TO_TICKS(10),
+    AUDIO_BLOCK_BYTES
+);
 
 if (received == NULL) {
     if (playback_active) {
@@ -284,7 +306,21 @@ esp_err_t audio_init(void)
 
         return result;
     }
+result =
+    audio_dsp_init(
+        AUDIO_SAMPLE_RATE_HZ,
+        AUDIO_CHANNEL_COUNT
+    );
 
+if (result != ESP_OK) {
+    ESP_LOGE(
+        TAG,
+        "Audio-DSP konnte nicht initialisiert werden: %s",
+        esp_err_to_name(result)
+    );
+
+    return result;
+}
     current_sample_rate =
         AUDIO_SAMPLE_RATE_HZ;
 
@@ -420,7 +456,59 @@ esp_err_t audio_flush(uint32_t timeout_ms)
 
     return ESP_OK;
 }
+esp_err_t audio_clear_buffer(void)
+{
+    if (audio_ring_buffer == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
 
+    if (audio_task_handle != NULL) {
+        vTaskSuspend(audio_task_handle);
+    }
+
+    size_t item_size = 0U;
+
+    while (true) {
+        void *item = xRingbufferReceive(
+            audio_ring_buffer,
+            &item_size,
+            0
+        );
+
+        if (item == NULL) {
+            break;
+        }
+
+        vRingbufferReturnItem(
+            audio_ring_buffer,
+            item
+        );
+    }
+
+    active_gain = 0.0f;
+
+    if (audio_task_handle != NULL) {
+        vTaskResume(audio_task_handle);
+    }
+
+    ESP_LOGI(TAG, "Audiopuffer sofort geleert");
+
+    return ESP_OK;
+}
+
+size_t audio_get_buffered_bytes(void)
+{
+    if (audio_ring_buffer == NULL) {
+        return 0U;
+    }
+
+    const size_t free_bytes =
+        xRingbufferGetCurFreeSize(audio_ring_buffer);
+
+    return free_bytes < AUDIO_RING_BUFFER_BYTES
+        ? AUDIO_RING_BUFFER_BYTES - free_bytes
+        : 0U;
+}
 void audio_set_playback_active(bool active)
 {
     playback_active = active;
@@ -593,7 +681,18 @@ esp_err_t audio_set_sample_rate(
 
     current_sample_rate =
         sample_rate;
+result =
+    audio_dsp_set_sample_rate(
+        sample_rate
+    );
 
+if (result != ESP_OK) {
+    ESP_LOGE(
+        TAG,
+        "DSP-Sample-Rate konnte nicht angepasst werden: %s",
+        esp_err_to_name(result)
+    );
+}
     xSemaphoreGive(i2s_mutex);
 
     ESP_LOGI(
