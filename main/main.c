@@ -10,6 +10,7 @@
 #include "station_manager.h"
 #include "radio_player.h"
 #include "settings.h"
+#include "bt_receiver.h"
 
 #include "esp_heap_caps.h"
 #include "media_manager.h"
@@ -60,11 +61,34 @@ void app_main(void)
     /*
      * AirPlay erst initialisieren, wenn Audio und Netzwerk vorhanden sind.
      */
-    ESP_ERROR_CHECK(airplay_player_init());
+    esp_err_t airplay_result =
+    airplay_player_init();
+
+if (airplay_result != ESP_OK) {
+    ESP_LOGE(
+        TAG,
+        "AirPlay konnte nicht gestartet werden: %s",
+        esp_err_to_name(airplay_result)
+    );
+}
     ESP_ERROR_CHECK(airplay_player_start());
 
     ESP_LOGI(TAG, "AirPlay-Grunddienst gestartet");
+esp_err_t bt_receiver_result =
+    bt_receiver_init();
 
+if (bt_receiver_result != ESP_OK) {
+    ESP_LOGE(
+        TAG,
+        "Bluetooth-UART-Empfänger konnte nicht gestartet werden: %s",
+        esp_err_to_name(bt_receiver_result)
+    );
+} else {
+    ESP_LOGI(
+        TAG,
+        "Bluetooth-UART-Empfänger gestartet"
+    );
+}
     ESP_ERROR_CHECK(web_server_start());
     ESP_LOGI(TAG, "Webinterface gestartet");
 

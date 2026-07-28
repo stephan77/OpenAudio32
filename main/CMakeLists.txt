@@ -16,4 +16,5 @@ idf_component_register(
         nvs_flash
         media_manager
         airplay_player
+        bt_receiver
 )

@@ -1,10 +1,10 @@
 idf_component_register(
     SRCS
-        "main.c"
+        "bluetooth.c"
     INCLUDE_DIRS
-        "."
+        "include"
     REQUIRES
-        bluetooth
+        bt
         bt_link
         bt_audio_output
         nvs_flash
